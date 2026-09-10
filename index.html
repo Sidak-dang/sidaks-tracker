@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Iron Ledger</title>
 <meta name="description" content="6-day push/pull/legs hypertrophy tracker">
-<meta name="theme-color" content="#1c1f1d">
+<meta name="theme-color" content="#141319">
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.svg">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
@@ -16,36 +16,19 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;600;700;800&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap">
 <style>
 :root{
-  --bg:#eef0ee;
-  --surface:#ffffff;
-  --surface-2:#e3e7e2;
-  --border:#d2d7d0;
-  --text:#1b1e1c;
-  --text-dim:#5c635d;
-  --text-faint:#8c928c;
-  --accent:#b3502c;
-  --accent-soft:#b3502c1a;
-  --accent-2:#3c6e6a;
-  --good:#4c7a4f;
-  --rest:#8c7a5c;
-  --shadow: 0 1px 2px rgba(20,22,20,0.06), 0 8px 24px -12px rgba(20,22,20,0.18);
-}
-@media (prefers-color-scheme: dark){
-  :root{
-    --bg:#1c1f1d;
-    --surface:#262a27;
-    --surface-2:#2f332f;
-    --border:#3c413c;
-    --text:#ecebe6;
-    --text-dim:#a4aba4;
-    --text-faint:#767d76;
-    --accent:#dd8355;
-    --accent-soft:#dd83552a;
-    --accent-2:#68b0aa;
-    --good:#84b986;
-    --rest:#b6a37f;
-    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 28px -12px rgba(0,0,0,0.5);
-  }
+  --bg:#141319;
+  --surface:#1f1c27;
+  --surface-2:#2a2632;
+  --border:#3a3440;
+  --text:#ece8f2;
+  --text-dim:#a79fb3;
+  --text-faint:#766d81;
+  --accent:#8f7be0;
+  --accent-soft:#8f7be026;
+  --accent-2:#3f7d78;
+  --good:#86a06f;
+  --rest:#b0966c;
+  --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 10px 30px -14px rgba(0,0,0,0.6);
 }
 *{box-sizing:border-box;}
 html,body{margin:0;}
@@ -160,7 +143,7 @@ header.top{
 }
 .setbox:hover{border-color:var(--text-faint);}
 .setbox:active{transform:scale(0.9);}
-.setbox.on{background:var(--good); border-color:var(--good);}
+.setbox.on{background:var(--accent); border-color:var(--accent);}
 .setbox.on::after{content:"";width:8px;height:5px;border-left:2px solid var(--surface);border-bottom:2px solid var(--surface);transform:rotate(-45deg) translate(1px,-1px);}
 .block.core .setbox.on, .block.cooldown .setbox.on, .block.warmup .setbox.on{background:var(--accent-2); border-color:var(--accent-2);}
 .chart-card{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px 20px 14px; margin-top:16px;}
