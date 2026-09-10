@@ -1,0 +1,14 @@
+{
+  "name": "Iron Ledger",
+  "short_name": "Iron Ledger",
+  "description": "6-day push/pull/legs hypertrophy tracker",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1c1f1d",
+  "theme_color": "#1c1f1d",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
