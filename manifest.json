@@ -1,6 +1,6 @@
 {
-  "name": "Iron Ledger",
-  "short_name": "Iron Ledger",
+  "name": "Sidak's Tracker",
+  "short_name": "Sidak's Tracker",
   "description": "6-day push/pull/legs hypertrophy tracker",
   "start_url": "./index.html",
   "scope": "./",

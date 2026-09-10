@@ -1,4 +1,4 @@
-# Iron Ledger
+# Sidak's Tracker
 
 A standalone, offline-capable workout tracker — a 6-day push/pull/legs hypertrophy
 split with a set-by-set checklist, a real calendar, and a weekly progress chart.
