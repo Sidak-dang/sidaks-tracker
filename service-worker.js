@@ -1,4 +1,4 @@
-const CACHE = "iron-ledger-v7";
+const CACHE = "iron-ledger-v8";
 const ASSETS = ["./", "./index.html", "./manifest.json", "./icon.svg"];
 
 self.addEventListener("install", (e) => {

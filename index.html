@@ -151,6 +151,7 @@ body{
 .progress-pill .track i{ display:block; height:100%; background:var(--accent); width:0%; transition:width .45s cubic-bezier(.22,.7,.3,1); }
 .reset-btn{ background:none; border:1px solid var(--border); color:var(--text-dim); font-size:12px; padding:6px 11px; border-radius:8px; cursor:pointer; }
 .reset-btn:hover{ border-color:var(--text-faint); color:var(--text); }
+.reset-btn:disabled{ opacity:.35; cursor:not-allowed; }
 
 /* past-day lock / edit controls */
 .lock-tag{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-faint); margin-left:8px; white-space:nowrap; }
@@ -295,6 +296,7 @@ body{
 .trackers-grid{ display:grid; grid-template-columns:1fr; gap:14px; margin-top:14px; }
 .tracker-card{ background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:16px 16px 14px; box-shadow:var(--shadow); }
 .tracker-head{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.tracker-head-right{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .tracker-head h3{ font-family:'Fraunces',serif; font-weight:600; font-size:15px; color:var(--text); margin:0; }
 .tracker-sub{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-faint); }
 .goal-edit-btn{ background:none; border:1px solid var(--border); color:var(--text-dim); font-family:'JetBrains Mono',monospace; font-size:11px; padding:4px 9px; border-radius:8px; cursor:pointer; }
@@ -311,6 +313,7 @@ body{
 }
 .tracker-btn:hover{ background:var(--accent-2); color:var(--surface); box-shadow:0 0 12px -6px var(--accent-2-glow); }
 .tracker-btn.selected{ background:var(--accent-2); color:var(--surface); box-shadow:0 0 12px -4px var(--accent-2-glow); }
+.tracker-btn:disabled{ opacity:.35; cursor:not-allowed; background:var(--accent-2-soft); color:var(--accent-2); box-shadow:none; }
 .tracker-confirm-row{ display:flex; gap:8px; margin-top:10px; }
 .weight-input-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .weight-input-row input{
@@ -319,6 +322,7 @@ body{
 }
 .weight-input-row input:focus{ outline:none; border-color:var(--accent); }
 .weight-input-row input::placeholder{ font-family:'Work Sans',sans-serif; font-weight:500; font-size:14px; color:var(--text-faint); }
+.weight-input-row input:disabled, .tracker-manual-row input:disabled{ opacity:.35; cursor:not-allowed; }
 .weight-input-row .tracker-unit{ font-size:13px; color:var(--text-dim); }
 .tracker-manual-row{ display:flex; align-items:center; gap:8px; margin-top:10px; }
 .tracker-manual-row input{
@@ -330,10 +334,26 @@ body{
 .weight-chart-wrap{ margin-top:14px; }
 .weight-chart-svg{ width:100%; height:auto; display:block; overflow:visible; }
 .wc-line{ stroke:var(--accent-2); stroke-width:2; fill:none; }
-.wc-dot{ fill:var(--accent-2); }
-.wc-dot:hover{ fill:var(--accent-bright); }
+.wchart-dot{ fill:var(--accent-2); }
+.wchart-dot:hover{ fill:var(--accent-bright); }
 .weight-trend-label{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text-dim); margin-top:8px; }
 .weight-chart-empty{ font-size:12px; color:var(--text-faint); margin-top:10px; }
+
+.weight-log-list{ display:flex; flex-direction:column; gap:8px; margin-top:12px; }
+.weight-log-entry{ display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:9px 11px; }
+.wle-main{ display:flex; flex-direction:column; gap:3px; min-width:0; }
+.wle-weight{ font-family:'Fraunces',serif; font-weight:700; font-size:16px; color:var(--text); line-height:1; }
+.wle-meta{ font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--text-faint); display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+.wle-delta.up{ color:var(--accent-2); }
+.wle-delta.down{ color:var(--good); }
+.wle-delete{
+  flex-shrink:0; background:none; border:1px solid var(--border); color:var(--text-faint);
+  width:28px; height:28px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-size:15px; line-height:1;
+}
+.wle-delete:hover:not(:disabled){ border-color:#ff6b6b; color:#ff6b6b; }
+.wle-delete:disabled{ opacity:.35; cursor:not-allowed; }
+.weight-log-empty{ font-size:12px; color:var(--text-faint); margin:10px 0 0; }
 @media (min-width:520px){ .trackers-grid{ grid-template-columns:1fr 1fr; } }
 
 footer{ text-align:center; color:var(--text-faint); font-size:11px; margin-top:20px; font-family:'JetBrains Mono',monospace; letter-spacing:0.02em; }
@@ -397,48 +417,8 @@ footer{ text-align:center; color:var(--text-faint); font-size:11px; margin-top:2
   <div class="panel" id="panel"></div>
 
   <div class="trackers-grid">
-    <div class="tracker-card" id="waterCard">
-      <div class="tracker-head">
-        <h3>Water intake</h3>
-        <button type="button" class="goal-edit-btn" id="waterGoalBtn">edit goal</button>
-      </div>
-      <div class="tracker-main">
-        <div class="tracker-ring" id="waterRing"></div>
-        <div class="tracker-figures">
-          <div class="tracker-amount"><span id="waterAmt">0.00</span><span class="tracker-unit">L</span></div>
-          <div class="tracker-goal">of <span id="waterGoalLabel">4.0</span> L goal</div>
-        </div>
-      </div>
-      <div class="tracker-actions">
-        <button type="button" class="tracker-btn" data-amt="250">+250 ml</button>
-        <button type="button" class="tracker-btn" data-amt="500">+500 ml</button>
-        <button type="button" class="tracker-btn" data-amt="1000">+1 L</button>
-      </div>
-      <div class="tracker-confirm-row">
-        <button type="button" class="save-btn" id="waterAddBtn" disabled>Add</button>
-        <button type="button" class="reset-btn" id="waterResetBtn">Reset</button>
-      </div>
-      <div class="tracker-manual-row">
-        <input type="number" inputmode="decimal" step="0.01" min="0" id="waterManualInput" placeholder="0.33">
-        <span class="unit-suffix">L</span>
-        <button type="button" class="tracker-btn" id="waterManualAddBtn">Add</button>
-      </div>
-    </div>
-
-    <div class="tracker-card" id="weightCard">
-      <div class="tracker-head">
-        <h3>Body weight</h3>
-        <span class="tracker-sub" id="weightTrend"></span>
-      </div>
-      <div class="weight-input-row">
-        <input type="number" inputmode="decimal" step="0.1" min="0" id="weightInput" placeholder="—">
-        <span class="tracker-unit">kg</span>
-        <button type="button" class="save-btn" id="weightSaveBtn">Log</button>
-        <button type="button" class="cancel-btn" id="weightClearBtn">Clear</button>
-      </div>
-      <div class="weight-chart-wrap" id="weightChartWrap"></div>
-      <div class="weight-trend-label" id="weightTrendLabel"></div>
-    </div>
+    <div class="tracker-card" id="waterCard"></div>
+    <div class="tracker-card" id="weightCard"></div>
   </div>
 
   <div class="consistency-card">
@@ -634,6 +614,15 @@ let expanded = { warmup:false, main:false, core:false, cooldown:false };
 // Resets on reload; today and future days are never locked.
 let unlockedPastDays = new Set();
 function isPastDate(d){ return d < TODAY; }
+function isPastIso(iso){ return iso < isoDate(TODAY); }
+
+// Water and weight get the same lock treatment as the workout panel, but as
+// their own independent domains — unlocking one to fix an old weigh-in
+// shouldn't also unlock that day's water log, and vice versa.
+let unlockedPastWater = new Set();
+let waterEditBaselines = new Map();
+let unlockedPastWeight = new Set();
+let weightEditBaselines = new Map();
 
 // Snapshot of a past day's data taken the moment it's unlocked for editing.
 // The Save button only lights up once the live data actually diverges from
@@ -660,6 +649,36 @@ function relockIfLeaving(destDate){
   }
 }
 
+// Same auto-relock-and-discard behavior as relockIfLeaving above, but for
+// the water and weight lock domains — called alongside it on every date
+// change so navigating away from a mid-edit past day's water/weight
+// reverts it too, instead of leaving it silently unlocked.
+function relockBioIfLeaving(destDate){
+  const leavingIso = isoDate(selected);
+  const enteringIso = isoDate(destDate);
+  if(leavingIso === enteringIso) return;
+  if(unlockedPastWater.has(leavingIso)){
+    const baseline = waterEditBaselines.get(leavingIso);
+    if(baseline !== undefined){
+      bioData(leavingIso).water = baseline;
+      saveBio();
+    }
+    unlockedPastWater.delete(leavingIso);
+    waterEditBaselines.delete(leavingIso);
+  }
+  if(unlockedPastWeight.has(leavingIso)){
+    const baseline = weightEditBaselines.get(leavingIso);
+    if(baseline !== undefined){
+      const logs = JSON.parse(baseline);
+      bioData(leavingIso).weightLogs = logs;
+      syncLegacyWeight(leavingIso);
+      saveBio();
+    }
+    unlockedPastWeight.delete(leavingIso);
+    weightEditBaselines.delete(leavingIso);
+  }
+}
+
 const LKEY = "iron-ledger-standalone-v1";
 let STORE = {};
 try{ STORE = JSON.parse(localStorage.getItem(LKEY) || "{}"); }catch(e){ STORE = {}; }
@@ -676,6 +695,70 @@ let BIO = {};
 try{ BIO = JSON.parse(localStorage.getItem(BKEY) || "{}"); }catch(e){ BIO = {}; }
 function saveBio(){ try{ localStorage.setItem(BKEY, JSON.stringify(BIO)); }catch(e){} }
 function bioData(iso){ if(!BIO[iso]) BIO[iso] = {}; return BIO[iso]; }
+
+// Weight used to be a single number per day (BIO[iso].weight). It's now a
+// list of timestamped entries (BIO[iso].weightLogs) so a day can hold more
+// than one weigh-in and each one shows when it was logged. Old single-value
+// records are lifted into that shape once, at load, so existing history and
+// the trend chart keep working untouched.
+(function migrateLegacyWeight(){
+  let migrated = false;
+  Object.keys(BIO).forEach(iso=>{
+    const rec = BIO[iso];
+    if(rec && rec.weight!=null && (!rec.weightLogs || !rec.weightLogs.length)){
+      rec.weightLogs = [{ id: iso+"-legacy", weight: rec.weight, time: "", ts: new Date(iso+"T12:00:00").getTime() }];
+      migrated = true;
+    }
+  });
+  if(migrated) saveBio();
+})();
+
+function dayWeightLogs(iso){ const d = bioData(iso); if(!d.weightLogs) d.weightLogs = []; return d.weightLogs; }
+
+// Keeps the legacy BIO[iso].weight field (still used by CSV export) pointed
+// at the most recent entry logged for that day, so export and any old code
+// path reading it stay correct after an add/delete/cancel.
+function syncLegacyWeight(iso){
+  const logs = bioData(iso).weightLogs || [];
+  if(logs.length){
+    const latest = logs.reduce((a,b)=>(a.ts||0)>=(b.ts||0)?a:b);
+    bioData(iso).weight = latest.weight;
+  } else {
+    delete bioData(iso).weight;
+  }
+}
+
+// Every logged weigh-in across all days, oldest first — used to compute
+// "vs last log" deltas that read across a day boundary correctly.
+function allWeightEntries(){
+  const out = [];
+  Object.keys(BIO).forEach(iso=>{
+    const logs = BIO[iso] && BIO[iso].weightLogs;
+    if(logs) logs.forEach(entry=>out.push({iso, entry}));
+  });
+  out.sort((a,b)=>(a.entry.ts||0)-(b.entry.ts||0));
+  return out;
+}
+
+function weightEntryDelta(entryId){
+  const all = allWeightEntries();
+  const idx = all.findIndex(x=>x.entry.id===entryId);
+  if(idx<=0) return null;
+  return all[idx].entry.weight - all[idx-1].entry.weight;
+}
+
+// The one weight value that represents a whole day on the trend chart —
+// the latest entry logged that day.
+function dayRepresentativeWeight(iso){
+  const logs = BIO[iso] && BIO[iso].weightLogs;
+  if(!logs || !logs.length) return null;
+  return logs.reduce((a,b)=>(a.ts||0)>=(b.ts||0)?a:b).weight;
+}
+
+function niceDateLabel(iso){
+  const [y,m,d] = iso.split("-").map(Number);
+  return new Date(y,m-1,d).toLocaleDateString(undefined,{weekday:"short", month:"short", day:"numeric"});
+}
 
 const SKEY = "sidaks-tracker-settings-v1";
 let SETTINGS = {};
@@ -946,6 +1029,7 @@ function renderWeekStrip(){
       const [y,m,dd] = chip.dataset.iso.split("-").map(Number);
       const dest = new Date(y, m-1, dd);
       relockIfLeaving(dest);
+      relockBioIfLeaving(dest);
       selected = dest;
       navDir = null;
       renderAll();
@@ -970,7 +1054,7 @@ function renderDateNav(){
     <div class="focus-big">${focus}</div>
   `;
   const chip = document.getElementById("todayChip");
-  if(chip) chip.addEventListener("click", ()=>{ const dest=new Date(TODAY); relockIfLeaving(dest); navDir=null; selected=dest; renderAll(); });
+  if(chip) chip.addEventListener("click", ()=>{ const dest=new Date(TODAY); relockIfLeaving(dest); relockBioIfLeaving(dest); navDir=null; selected=dest; renderAll(); });
 }
 
 function accSection(title, sec, list, iso, data){
@@ -1340,6 +1424,7 @@ function renderChart(){
         const [yy,mm,dd] = cellIso.split("-").map(Number);
         const dest = new Date(yy, mm-1, dd);
         relockIfLeaving(dest);
+        relockBioIfLeaving(dest);
         navDir = null;
         selected = dest;
         renderAll();
@@ -1373,21 +1458,35 @@ function renderChart(){
   }
 }
 
-// Sparkline of logged weigh-ins over time, plus a trend read (up/down/stable)
-// from an ordinary least-squares fit of weight against days-since-first-entry
-// — a straight regression slope rather than just "first vs last", so one
-// off day doesn't swing the label.
+// Sparkline of logged weigh-ins over time (one point per day, the day's
+// latest entry), plus a trend read (up/down/stable) from an ordinary
+// least-squares fit of weight against days-since-first-entry — a straight
+// regression slope rather than just "first vs last", so one off day doesn't
+// swing the label. A single logged day still gets a chart: one dot, no
+// slope, with a "first log" label instead of an empty state.
 const WC_W = 300, WC_H = 84, WC_PAD_X = 6, WC_PAD_Y = 10, WC_MAX_POINTS = 20;
 function renderWeightChart(){
   const wrap = document.getElementById("weightChartWrap");
   const labelEl = document.getElementById("weightTrendLabel");
-  const entries = Object.keys(BIO).filter(k=>BIO[k] && BIO[k].weight!=null).sort();
-  if(entries.length < 2){
-    wrap.innerHTML = `<div class="weight-chart-empty">Log weight on a few more days to see your trend.</div>`;
+  if(!wrap || !labelEl) return;
+  const entries = Object.keys(BIO)
+    .map(iso=>({iso, w: dayRepresentativeWeight(iso)}))
+    .filter(e=>e.w!=null)
+    .sort((a,b)=> a.iso<b.iso ? -1 : a.iso>b.iso ? 1 : 0);
+
+  if(entries.length === 0){
+    wrap.innerHTML = `<div class="weight-chart-empty">Log your weight to see it charted here.</div>`;
     labelEl.textContent = "";
     return;
   }
-  const recent = entries.slice(-WC_MAX_POINTS).map(iso=>({iso, w:BIO[iso].weight}));
+  if(entries.length === 1){
+    const only = entries[0];
+    wrap.innerHTML = `<svg class="weight-chart-svg" viewBox="0 0 ${WC_W} ${WC_H}" role="img" aria-label="Weight over time"><circle class="wchart-dot" cx="${WC_W/2}" cy="${WC_H/2}" r="3.4"><title>${only.iso}: ${only.w} kg</title></circle></svg>`;
+    labelEl.textContent = `First log · ${only.w} kg — keep logging to see a trend.`;
+    return;
+  }
+
+  const recent = entries.slice(-WC_MAX_POINTS);
   const firstMs = new Date(recent[0].iso+"T00:00:00").getTime();
   const xs = recent.map(e=>(new Date(e.iso+"T00:00:00").getTime()-firstMs)/86400000);
   const ys = recent.map(e=>e.w);
@@ -1398,7 +1497,7 @@ function renderWeightChart(){
   const toY = y => (WC_H-WC_PAD_Y) - ((y-minW)/rangeW)*(WC_H-2*WC_PAD_Y);
   const pts = xs.map((x,i)=>[toX(x), toY(ys[i])]);
   const path = pts.map((p,i)=>(i===0?"M":"L")+p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ");
-  const dots = pts.map((p,i)=>`<circle class="wc-dot" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.6"><title>${recent[i].iso}: ${recent[i].w} kg</title></circle>`).join("");
+  const dots = pts.map((p,i)=>`<circle class="wchart-dot" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.6"><title>${recent[i].iso}: ${recent[i].w} kg</title></circle>`).join("");
   wrap.innerHTML = `<svg class="weight-chart-svg" viewBox="0 0 ${WC_W} ${WC_H}" role="img" aria-label="Weight over time"><path class="wc-line" d="${path}"></path>${dots}</svg>`;
 
   const n = xs.length;
@@ -1421,41 +1520,283 @@ let waterPresetIso = null;
 
 function renderTrackers(){
   const iso = isoDate(selected);
-  const data = bioData(iso);
   if(iso !== waterPresetIso){ selectedWaterPreset = null; waterPresetIso = iso; }
+  renderWaterCard();
+  renderWeightCard();
+}
+
+// Water intake for a past day renders locked (view-only) the same way the
+// workout panel does, unless "Edit day" has been tapped for that date this
+// session — protects old logs from an accidental extra +500ml tap.
+function renderWaterCard(){
+  const iso = isoDate(selected);
+  const data = bioData(iso);
+  const isPast = isPastIso(iso);
+  const locked = isPast && !unlockedPastWater.has(iso);
 
   const waterMl = data.water || 0;
   const goalMl = SETTINGS.waterGoalMl || 4000;
   const pct = goalMl>0 ? Math.round(100*waterMl/goalMl) : 0;
   const color = pct>=100 ? "var(--good)" : "var(--accent-2)";
-  document.getElementById("waterGoalLabel").textContent = (goalMl/1000).toFixed(1);
-  document.getElementById("waterAmt").textContent = (waterMl/1000).toFixed(2);
-  const ringWrap = document.getElementById("waterRing");
-  const existingSvg = ringWrap.querySelector("svg");
-  if(existingSvg){ updateRingSVG(existingSvg, pct, color); }
-  else { ringWrap.innerHTML = ringSVG(pct, 56, 6, color); }
 
-  document.querySelectorAll(".tracker-btn[data-amt]").forEach(btn=>{
-    btn.classList.toggle("selected", parseInt(btn.dataset.amt,10)===selectedWaterPreset);
-  });
-  const waterAddBtn = document.getElementById("waterAddBtn");
-  if(waterAddBtn) waterAddBtn.disabled = selectedWaterPreset==null;
-
-  const w = data.weight;
-  const weightInput = document.getElementById("weightInput");
-  if(document.activeElement !== weightInput){ weightInput.value = (w!=null) ? w : ""; }
-  const trendEl = document.getElementById("weightTrend");
-  if(w == null){
-    trendEl.textContent = "";
-  } else {
-    const prevIso = Object.keys(BIO).filter(k=>k<iso && BIO[k] && BIO[k].weight!=null).sort().pop();
-    if(prevIso){
-      const diff = w - BIO[prevIso].weight;
-      trendEl.textContent = `${diff>0?"+":""}${diff.toFixed(1)} kg vs last log`;
+  let rightControls = "";
+  if(isPast){
+    if(locked){
+      rightControls = `<button type="button" class="edit-btn" id="waterEditBtn">Edit day</button>`;
     } else {
-      trendEl.textContent = "first log";
+      if(!waterEditBaselines.has(iso)) waterEditBaselines.set(iso, waterMl);
+      const dirty = waterEditBaselines.get(iso) !== waterMl;
+      rightControls = `<button type="button" class="cancel-btn" id="waterCancelBtn">Cancel</button><button type="button" class="save-btn" id="waterSaveDayBtn"${dirty?"":" disabled"}>Save</button>`;
     }
   }
+
+  const card = document.getElementById("waterCard");
+  card.innerHTML = `
+    <div class="tracker-head">
+      <h3>Water intake</h3>
+      <div class="tracker-head-right">
+        <button type="button" class="goal-edit-btn" id="waterGoalBtn">edit goal</button>
+        ${rightControls}
+      </div>
+    </div>
+    ${locked ? `<div class="lock-banner">&#128274; This is a past day, so it's locked to prevent accidental changes. Tap <b>Edit day</b> to make changes.</div>` : ""}
+    <div class="tracker-main">
+      <div class="tracker-ring" id="waterRing"></div>
+      <div class="tracker-figures">
+        <div class="tracker-amount"><span id="waterAmt">${(waterMl/1000).toFixed(2)}</span><span class="tracker-unit">L</span></div>
+        <div class="tracker-goal">of <span id="waterGoalLabel">${(goalMl/1000).toFixed(1)}</span> L goal</div>
+      </div>
+    </div>
+    <div class="tracker-actions">
+      <button type="button" class="tracker-btn" data-amt="250"${locked?" disabled":""}>+250 ml</button>
+      <button type="button" class="tracker-btn" data-amt="500"${locked?" disabled":""}>+500 ml</button>
+      <button type="button" class="tracker-btn" data-amt="1000"${locked?" disabled":""}>+1 L</button>
+    </div>
+    <div class="tracker-confirm-row">
+      <button type="button" class="save-btn" id="waterAddBtn"${(locked || selectedWaterPreset==null)?" disabled":""}>Add</button>
+      <button type="button" class="reset-btn" id="waterResetBtn"${locked?" disabled":""}>Reset</button>
+    </div>
+    <div class="tracker-manual-row">
+      <input type="number" inputmode="decimal" step="0.01" min="0" id="waterManualInput" placeholder="0.33"${locked?" disabled":""}>
+      <span class="unit-suffix">L</span>
+      <button type="button" class="tracker-btn" id="waterManualAddBtn"${locked?" disabled":""}>Add</button>
+    </div>
+  `;
+
+  const ringWrap = document.getElementById("waterRing");
+  ringWrap.innerHTML = ringSVG(pct, 56, 6, color);
+
+  card.querySelectorAll(".tracker-btn[data-amt]").forEach(btn=>{
+    btn.classList.toggle("selected", parseInt(btn.dataset.amt,10)===selectedWaterPreset);
+    btn.addEventListener("click", ()=>{
+      if(locked) return;
+      const amt = parseInt(btn.dataset.amt,10);
+      selectedWaterPreset = (selectedWaterPreset===amt) ? null : amt;
+      renderWaterCard();
+    });
+  });
+
+  const addBtn = document.getElementById("waterAddBtn");
+  if(addBtn) addBtn.addEventListener("click", ()=>{
+    if(locked || selectedWaterPreset==null) return;
+    bioData(iso).water = (bioData(iso).water||0) + selectedWaterPreset;
+    saveBio();
+    selectedWaterPreset = null;
+    renderWaterCard();
+  });
+
+  const resetBtn = document.getElementById("waterResetBtn");
+  if(resetBtn) resetBtn.addEventListener("click", ()=>{
+    if(locked) return;
+    bioData(iso).water = 0;
+    saveBio();
+    selectedWaterPreset = null;
+    renderWaterCard();
+  });
+
+  function addManualWater(){
+    if(locked) return;
+    const input = document.getElementById("waterManualInput");
+    const val = parseFloat(input.value);
+    if(!isFinite(val) || val<=0) return;
+    bioData(iso).water = (bioData(iso).water||0) + Math.round(val*1000);
+    saveBio();
+    renderWaterCard();
+  }
+  const manualBtn = document.getElementById("waterManualAddBtn");
+  if(manualBtn) manualBtn.addEventListener("click", addManualWater);
+  const manualInput = document.getElementById("waterManualInput");
+  if(manualInput) manualInput.addEventListener("keydown", e=>{ if(e.key==="Enter") addManualWater(); });
+
+  document.getElementById("waterGoalBtn").addEventListener("click", ()=>{
+    const input = window.prompt("Daily water goal, in liters:", (SETTINGS.waterGoalMl/1000));
+    if(input===null) return;
+    const val = parseFloat(input);
+    if(!isFinite(val) || val<=0) return;
+    SETTINGS.waterGoalMl = Math.round(val*1000);
+    saveSettings();
+    renderWaterCard();
+  });
+
+  const editBtn = document.getElementById("waterEditBtn");
+  if(editBtn) editBtn.addEventListener("click", ()=>{
+    waterEditBaselines.set(iso, bioData(iso).water||0);
+    unlockedPastWater.add(iso);
+    renderWaterCard();
+  });
+
+  const saveDayBtn = document.getElementById("waterSaveDayBtn");
+  if(saveDayBtn) saveDayBtn.addEventListener("click", ()=>{
+    if(saveDayBtn.disabled) return;
+    unlockedPastWater.delete(iso);
+    waterEditBaselines.delete(iso);
+    renderWaterCard();
+  });
+
+  const cancelBtn = document.getElementById("waterCancelBtn");
+  if(cancelBtn) cancelBtn.addEventListener("click", ()=>{
+    const baseline = waterEditBaselines.get(iso);
+    if(baseline !== undefined){
+      bioData(iso).water = baseline;
+      saveBio();
+    }
+    unlockedPastWater.delete(iso);
+    waterEditBaselines.delete(iso);
+    renderWaterCard();
+  });
+}
+
+// Body weight is a proper log now: each tap of "Log" appends a new
+// timestamped entry (date/time fetched automatically, never typed) rather
+// than overwriting a single per-day value. Past days lock the same way the
+// workout panel and water card do.
+function renderWeightCard(){
+  const iso = isoDate(selected);
+  const isPast = isPastIso(iso);
+  const locked = isPast && !unlockedPastWeight.has(iso);
+  const logsAsc = dayWeightLogs(iso);
+  const logs = logsAsc.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+
+  let rightControls = "";
+  if(isPast){
+    if(locked){
+      rightControls = `<button type="button" class="edit-btn" id="weightEditBtn">Edit day</button>`;
+    } else {
+      if(!weightEditBaselines.has(iso)) weightEditBaselines.set(iso, JSON.stringify(logsAsc));
+      const dirty = weightEditBaselines.get(iso) !== JSON.stringify(logsAsc);
+      rightControls = `<button type="button" class="cancel-btn" id="weightCancelBtn">Cancel</button><button type="button" class="save-btn" id="weightSaveDayBtn"${dirty?"":" disabled"}>Save</button>`;
+    }
+  }
+
+  const all = allWeightEntries();
+  let trendText = "";
+  if(all.length>=2){
+    const diff = all[all.length-1].entry.weight - all[all.length-2].entry.weight;
+    trendText = `${diff>0?"+":""}${diff.toFixed(1)} kg vs last log`;
+  } else if(all.length===1){
+    trendText = "first log";
+  }
+
+  const entriesHtml = logs.length ? logs.map(entry=>{
+    const delta = weightEntryDelta(entry.id);
+    const deltaHtml = delta==null ? "" : `<span class="wle-delta ${delta>0?"up":delta<0?"down":""}">${delta>0?"+":""}${delta.toFixed(1)} kg</span>`;
+    const timeHtml = entry.time ? ` · ${entry.time}` : "";
+    return `
+      <div class="weight-log-entry">
+        <div class="wle-main">
+          <div class="wle-weight">${entry.weight} kg</div>
+          <div class="wle-meta"><span>${niceDateLabel(iso)}${timeHtml}</span>${deltaHtml}</div>
+        </div>
+        <button type="button" class="wle-delete" data-id="${entry.id}"${locked?" disabled":""} aria-label="Delete this entry">&times;</button>
+      </div>`;
+  }).join("") : `<div class="weight-log-empty">No weigh-ins logged for this day yet.</div>`;
+
+  const card = document.getElementById("weightCard");
+  card.innerHTML = `
+    <div class="tracker-head">
+      <h3>Body weight</h3>
+      <div class="tracker-head-right">
+        <span class="tracker-sub">${trendText}</span>
+        ${rightControls}
+      </div>
+    </div>
+    ${locked ? `<div class="lock-banner">&#128274; This is a past day, so it's locked to prevent accidental changes. Tap <b>Edit day</b> to make changes.</div>` : ""}
+    <div class="weight-input-row">
+      <input type="number" inputmode="decimal" step="0.1" min="0" id="weightInput" placeholder="—"${locked?" disabled":""}>
+      <span class="tracker-unit">kg</span>
+      <button type="button" class="save-btn" id="weightSaveBtn"${locked?" disabled":""}>Log</button>
+    </div>
+    <div class="weight-log-list">${entriesHtml}</div>
+    <div class="weight-chart-wrap" id="weightChartWrap"></div>
+    <div class="weight-trend-label" id="weightTrendLabel"></div>
+  `;
+
+  function logWeight(){
+    if(locked) return;
+    const input = document.getElementById("weightInput");
+    const val = parseFloat(input.value);
+    if(!isFinite(val) || val<=0) return;
+    const now = new Date();
+    // Date comes from the day being logged (selected), time comes from the
+    // real clock at the moment "Log" is tapped — neither is ever typed in.
+    const ts = new Date(selected.getFullYear(), selected.getMonth(), selected.getDate(), now.getHours(), now.getMinutes(), now.getSeconds()).getTime();
+    const entry = {
+      id: iso+"-"+now.getTime()+"-"+Math.random().toString(36).slice(2,7),
+      weight: Math.round(val*10)/10,
+      time: now.toTimeString().slice(0,5),
+      ts
+    };
+    dayWeightLogs(iso).push(entry);
+    syncLegacyWeight(iso);
+    saveBio();
+    renderWeightCard();
+  }
+  const saveBtn = document.getElementById("weightSaveBtn");
+  if(saveBtn) saveBtn.addEventListener("click", logWeight);
+  const input = document.getElementById("weightInput");
+  if(input) input.addEventListener("keydown", e=>{ if(e.key==="Enter") logWeight(); });
+
+  card.querySelectorAll(".wle-delete").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      if(locked) return;
+      const id = btn.dataset.id;
+      const arr = dayWeightLogs(iso);
+      const idx = arr.findIndex(e=>e.id===id);
+      if(idx>=0) arr.splice(idx,1);
+      syncLegacyWeight(iso);
+      saveBio();
+      renderWeightCard();
+    });
+  });
+
+  const editBtn = document.getElementById("weightEditBtn");
+  if(editBtn) editBtn.addEventListener("click", ()=>{
+    weightEditBaselines.set(iso, JSON.stringify(dayWeightLogs(iso)));
+    unlockedPastWeight.add(iso);
+    renderWeightCard();
+  });
+
+  const saveDayBtn = document.getElementById("weightSaveDayBtn");
+  if(saveDayBtn) saveDayBtn.addEventListener("click", ()=>{
+    if(saveDayBtn.disabled) return;
+    unlockedPastWeight.delete(iso);
+    weightEditBaselines.delete(iso);
+    renderWeightCard();
+  });
+
+  const cancelBtn = document.getElementById("weightCancelBtn");
+  if(cancelBtn) cancelBtn.addEventListener("click", ()=>{
+    const baseline = weightEditBaselines.get(iso);
+    if(baseline !== undefined){
+      bioData(iso).weightLogs = JSON.parse(baseline);
+      syncLegacyWeight(iso);
+      saveBio();
+    }
+    unlockedPastWeight.delete(iso);
+    weightEditBaselines.delete(iso);
+    renderWeightCard();
+  });
+
   renderWeightChart();
 }
 
@@ -1548,69 +1889,8 @@ document.getElementById("exportAllBtn").addEventListener("click", ()=>{
   downloadTextFile(`sidaks-tracker-full-history-${isoDate(TODAY)}.csv`, exportCSV(), "text/csv;charset=utf-8;");
 });
 
-document.getElementById("prevBtn").addEventListener("click",()=>{ const dest=addDays(selected,-1); relockIfLeaving(dest); navDir="prev"; selected=dest; renderAll(); });
-document.getElementById("nextBtn").addEventListener("click",()=>{ const dest=addDays(selected,1); relockIfLeaving(dest); navDir="next"; selected=dest; renderAll(); });
-
-document.querySelectorAll(".tracker-btn[data-amt]").forEach(btn=>{
-  btn.addEventListener("click", ()=>{
-    const amt = parseInt(btn.dataset.amt,10);
-    selectedWaterPreset = (selectedWaterPreset===amt) ? null : amt;
-    renderTrackers();
-  });
-});
-document.getElementById("waterAddBtn").addEventListener("click", ()=>{
-  if(selectedWaterPreset==null) return;
-  const data = bioData(isoDate(selected));
-  data.water = (data.water||0) + selectedWaterPreset;
-  saveBio();
-  selectedWaterPreset = null;
-  renderTrackers();
-});
-document.getElementById("waterResetBtn").addEventListener("click", ()=>{
-  bioData(isoDate(selected)).water = 0;
-  saveBio();
-  selectedWaterPreset = null;
-  renderTrackers();
-});
-function addManualWater(){
-  const input = document.getElementById("waterManualInput");
-  const val = parseFloat(input.value);
-  if(!isFinite(val) || val<=0) return;
-  const data = bioData(isoDate(selected));
-  data.water = (data.water||0) + Math.round(val*1000);
-  saveBio();
-  input.value = "";
-  renderTrackers();
-}
-document.getElementById("waterManualAddBtn").addEventListener("click", addManualWater);
-document.getElementById("waterManualInput").addEventListener("keydown", (e)=>{
-  if(e.key==="Enter") addManualWater();
-});
-document.getElementById("waterGoalBtn").addEventListener("click", ()=>{
-  const input = window.prompt("Daily water goal, in liters:", (SETTINGS.waterGoalMl/1000));
-  if(input===null) return;
-  const val = parseFloat(input);
-  if(!isFinite(val) || val<=0) return;
-  SETTINGS.waterGoalMl = Math.round(val*1000);
-  saveSettings();
-  renderTrackers();
-});
-document.getElementById("weightSaveBtn").addEventListener("click", ()=>{
-  const input = document.getElementById("weightInput");
-  const val = parseFloat(input.value);
-  if(!isFinite(val) || val<=0) return;
-  bioData(isoDate(selected)).weight = Math.round(val*10)/10;
-  saveBio();
-  renderTrackers();
-});
-document.getElementById("weightInput").addEventListener("keydown", (e)=>{
-  if(e.key==="Enter") document.getElementById("weightSaveBtn").click();
-});
-document.getElementById("weightClearBtn").addEventListener("click", ()=>{
-  delete bioData(isoDate(selected)).weight;
-  saveBio();
-  renderTrackers();
-});
+document.getElementById("prevBtn").addEventListener("click",()=>{ const dest=addDays(selected,-1); relockIfLeaving(dest); relockBioIfLeaving(dest); navDir="prev"; selected=dest; renderAll(); });
+document.getElementById("nextBtn").addEventListener("click",()=>{ const dest=addDays(selected,1); relockIfLeaving(dest); relockBioIfLeaving(dest); navDir="next"; selected=dest; renderAll(); });
 
 renderAll();
 
