@@ -336,6 +336,10 @@ body{
 .wc-line{ stroke:var(--accent-2); stroke-width:2; fill:none; }
 .wchart-dot{ fill:var(--accent-2); }
 .wchart-dot:hover{ fill:var(--accent-bright); }
+.wc-gridline{ stroke:var(--border); stroke-width:1; }
+.wc-axis-line{ stroke:var(--text-faint); stroke-width:1; }
+.wc-axis-label{ font-family:'JetBrains Mono',monospace; font-size:7.5px; fill:var(--text-faint); }
+.wc-axis-unit{ font-family:'JetBrains Mono',monospace; font-size:7.5px; fill:var(--text-faint); text-anchor:start; }
 .weight-trend-label{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text-dim); margin-top:8px; }
 .weight-chart-empty{ font-size:12px; color:var(--text-faint); margin-top:10px; }
 
@@ -1464,7 +1468,43 @@ function renderChart(){
 // regression slope rather than just "first vs last", so one off day doesn't
 // swing the label. A single logged day still gets a chart: one dot, no
 // slope, with a "first log" label instead of an empty state.
-const WC_W = 300, WC_H = 84, WC_PAD_X = 6, WC_PAD_Y = 10, WC_MAX_POINTS = 20, WC_MIN_SPAN_DAYS = 3;
+//
+// The chart carries real x/y axes: weight (kg) on the left with
+// auto-computed "nice" tick intervals sized to whatever range is actually
+// logged (a 54→80 kg spread ticks every 10, a 70.0→70.8 kg spread ticks
+// every 0.2), and dates+weekday across the bottom, thinned to a handful of
+// labels so they never overlap on a narrow screen.
+const WC_W = 300, WC_H = 132, WC_PAD_LEFT = 32, WC_PAD_RIGHT = 8, WC_PAD_TOP = 14, WC_PAD_BOTTOM = 26;
+const WC_MAX_POINTS = 20, WC_MIN_SPAN_DAYS = 3, WC_Y_TICKS = 4, WC_X_LABELS = 4;
+
+// "Nice" round number closest to `range` — the classic Heckbert axis-tick
+// algorithm. round=true snaps to the nearest nice step; round=false rounds
+// up, which is what we want when sizing the overall tick range.
+function wcNiceNum(range, round){
+  if(range <= 0) return 1;
+  const exp = Math.floor(Math.log10(range));
+  const frac = range / Math.pow(10, exp);
+  let niceFrac;
+  if(round){ niceFrac = frac<1.5 ? 1 : frac<3 ? 2 : frac<7 ? 5 : 10; }
+  else { niceFrac = frac<=1 ? 1 : frac<=2 ? 2 : frac<=5 ? 5 : 10; }
+  return niceFrac * Math.pow(10, exp);
+}
+// Auto-scaled tick values covering [min,max] with ~targetCount nice steps.
+function wcNiceTicks(min, max, targetCount){
+  if(min === max){ min -= 1; max += 1; }
+  const niceRange = wcNiceNum(max-min, false);
+  const step = wcNiceNum(niceRange/(targetCount-1), true);
+  const niceMin = Math.floor(min/step)*step;
+  const niceMax = Math.ceil(max/step)*step;
+  const ticks = [];
+  for(let v=niceMin; v<=niceMax+step/1e6; v+=step) ticks.push(Math.round(v*1000)/1000);
+  return {ticks, niceMin, niceMax, step};
+}
+function wcFormatDate(iso){
+  const d = new Date(iso+"T00:00:00");
+  return `${d.getDate()} ${d.toLocaleDateString("en-US",{month:"short"})}, ${d.toLocaleDateString("en-US",{weekday:"short"})}`;
+}
+
 function renderWeightChart(){
   const wrap = document.getElementById("weightChartWrap");
   const labelEl = document.getElementById("weightTrendLabel");
@@ -1479,26 +1519,61 @@ function renderWeightChart(){
     labelEl.textContent = "";
     return;
   }
-  if(entries.length === 1){
-    const only = entries[0];
-    wrap.innerHTML = `<svg class="weight-chart-svg" viewBox="0 0 ${WC_W} ${WC_H}" role="img" aria-label="Weight over time"><circle class="wchart-dot" cx="${WC_W/2}" cy="${WC_H/2}" r="3.4"><title>${only.iso}: ${only.w} kg</title></circle></svg>`;
-    labelEl.textContent = `First log · ${only.w} kg — keep logging to see a trend.`;
-    return;
-  }
 
-  const recent = entries.slice(-WC_MAX_POINTS);
+  // Single point still gets full axes (a small range straddling the one
+  // value, one date label) rather than a bare floating dot.
+  const recent = entries.length === 1 ? entries : entries.slice(-WC_MAX_POINTS);
   const firstMs = new Date(recent[0].iso+"T00:00:00").getTime();
   const xs = recent.map(e=>(new Date(e.iso+"T00:00:00").getTime()-firstMs)/86400000);
   const ys = recent.map(e=>e.w);
-  const minW = Math.min(...ys), maxW = Math.max(...ys);
-  const rangeW = Math.max(0.2, maxW-minW);
   const maxX = Math.max(1, xs[xs.length-1]);
-  const toX = x => WC_PAD_X + (x/maxX)*(WC_W-2*WC_PAD_X);
-  const toY = y => (WC_H-WC_PAD_Y) - ((y-minW)/rangeW)*(WC_H-2*WC_PAD_Y);
-  const pts = xs.map((x,i)=>[toX(x), toY(ys[i])]);
-  const path = pts.map((p,i)=>(i===0?"M":"L")+p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ");
-  const dots = pts.map((p,i)=>`<circle class="wchart-dot" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.6"><title>${recent[i].iso}: ${recent[i].w} kg</title></circle>`).join("");
-  wrap.innerHTML = `<svg class="weight-chart-svg" viewBox="0 0 ${WC_W} ${WC_H}" role="img" aria-label="Weight over time"><path class="wc-line" d="${path}"></path>${dots}</svg>`;
+
+  const {ticks: yTicks, niceMin, niceMax} = wcNiceTicks(Math.min(...ys), Math.max(...ys), WC_Y_TICKS);
+  const plotX0 = WC_PAD_LEFT, plotX1 = WC_W - WC_PAD_RIGHT;
+  const plotY0 = WC_PAD_TOP, plotY1 = WC_H - WC_PAD_BOTTOM;
+  const toX = x => plotX0 + (x/maxX) * (plotX1-plotX0);
+  const toY = y => plotY1 - ((y-niceMin)/(niceMax-niceMin)) * (plotY1-plotY0);
+
+  // Horizontal gridlines + weight labels on the y-axis.
+  const yGrid = yTicks.map(v=>{
+    const y = toY(v).toFixed(1);
+    return `<line class="wc-gridline" x1="${plotX0}" x2="${plotX1}" y1="${y}" y2="${y}"></line>`
+         + `<text class="wc-axis-label" x="${plotX0-5}" y="${(+y+2.8).toFixed(1)}" text-anchor="end">${v}</text>`;
+  }).join("");
+
+  // Date+weekday labels on the x-axis, thinned to a handful so they never
+  // overlap — always includes the first and last logged point.
+  const labelCount = Math.min(recent.length, WC_X_LABELS);
+  const xIdxs = recent.length <= 1 ? [0] : [...new Set(Array.from({length:labelCount}, (_,i)=>Math.round(i*(recent.length-1)/(labelCount-1))))];
+  const xTicks = xIdxs.map(i=>{
+    const x = toX(xs[i]).toFixed(1);
+    const anchor = i===0 ? "start" : i===recent.length-1 ? "end" : "middle";
+    return `<line class="wc-gridline" x1="${x}" x2="${x}" y1="${plotY0}" y2="${plotY1}"></line>`
+         + `<line class="wc-axis-line" x1="${x}" x2="${x}" y1="${plotY1}" y2="${(plotY1+3).toFixed(1)}"></line>`
+         + `<text class="wc-axis-label" x="${x}" y="${plotY1+13}" text-anchor="${anchor}">${wcFormatDate(recent[i].iso)}</text>`;
+  }).join("");
+
+  const axisLines = `<line class="wc-axis-line" x1="${plotX0}" x2="${plotX0}" y1="${plotY0}" y2="${plotY1}"></line>`
+                   + `<line class="wc-axis-line" x1="${plotX0}" x2="${plotX1}" y1="${plotY1}" y2="${plotY1}"></line>`;
+  const yUnitLabel = `<text class="wc-axis-unit" x="${plotX0}" y="${plotY0-4}">kg</text>`;
+
+  let plot = "";
+  if(recent.length === 1){
+    const only = recent[0];
+    plot = `<circle class="wchart-dot" cx="${toX(0).toFixed(1)}" cy="${toY(only.w).toFixed(1)}" r="3.4"><title>${only.iso}: ${only.w} kg</title></circle>`;
+  } else {
+    const pts = xs.map((x,i)=>[toX(x), toY(ys[i])]);
+    const path = pts.map((p,i)=>(i===0?"M":"L")+p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ");
+    const dots = pts.map((p,i)=>`<circle class="wchart-dot" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.6"><title>${recent[i].iso}: ${recent[i].w} kg</title></circle>`).join("");
+    plot = `<path class="wc-line" d="${path}"></path>${dots}`;
+  }
+
+  wrap.innerHTML = `<svg class="weight-chart-svg" viewBox="0 0 ${WC_W} ${WC_H}" role="img" aria-label="Weight over time, in kilograms, by date">${yGrid}${xTicks}${axisLines}${yUnitLabel}${plot}</svg>`;
+
+  if(entries.length === 1){
+    labelEl.textContent = `First log · ${recent[0].w} kg — keep logging to see a trend.`;
+    return;
+  }
 
   const n = xs.length;
   const spanDays = xs[xs.length-1];
