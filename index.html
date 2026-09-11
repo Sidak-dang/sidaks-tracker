@@ -1464,7 +1464,7 @@ function renderChart(){
 // regression slope rather than just "first vs last", so one off day doesn't
 // swing the label. A single logged day still gets a chart: one dot, no
 // slope, with a "first log" label instead of an empty state.
-const WC_W = 300, WC_H = 84, WC_PAD_X = 6, WC_PAD_Y = 10, WC_MAX_POINTS = 20;
+const WC_W = 300, WC_H = 84, WC_PAD_X = 6, WC_PAD_Y = 10, WC_MAX_POINTS = 20, WC_MIN_SPAN_DAYS = 3;
 function renderWeightChart(){
   const wrap = document.getElementById("weightChartWrap");
   const labelEl = document.getElementById("weightTrendLabel");
@@ -1501,11 +1501,26 @@ function renderWeightChart(){
   wrap.innerHTML = `<svg class="weight-chart-svg" viewBox="0 0 ${WC_W} ${WC_H}" role="img" aria-label="Weight over time"><path class="wc-line" d="${path}"></path>${dots}</svg>`;
 
   const n = xs.length;
+  const spanDays = xs[xs.length-1];
+  const scope = entries.length > WC_MAX_POINTS ? `last ${WC_MAX_POINTS} logs` : `${n} logs`;
+
+  // A weekly rate from a regression slope only means something once the
+  // logs are spread over enough time — with entries a day or two apart,
+  // multiplying by 7 wildly overstates the real trend (e.g. two logs one
+  // day apart, -2kg, would extrapolate to -14 kg/wk). Below this span we
+  // show the plain change instead of an extrapolated rate.
+  if(spanDays < WC_MIN_SPAN_DAYS){
+    const totalDiff = ys[ys.length-1] - ys[0];
+    const diffStr = `${totalDiff>0?"+":""}${totalDiff.toFixed(1)} kg`;
+    const dayStr = `${spanDays.toFixed(0)} day${spanDays===1?"":"s"}`;
+    labelEl.textContent = `${diffStr} over ${dayStr} · ${scope} · trend needs a few more days`;
+    return;
+  }
+
   const meanX = xs.reduce((a,b)=>a+b,0)/n, meanY = ys.reduce((a,b)=>a+b,0)/n;
   let num=0, den=0;
   for(let i=0;i<n;i++){ num += (xs[i]-meanX)*(ys[i]-meanY); den += (xs[i]-meanX)**2; }
   const perWeek = (den>0 ? num/den : 0) * 7;
-  const scope = entries.length > WC_MAX_POINTS ? `last ${WC_MAX_POINTS} logs` : `${n} logs`;
   if(Math.abs(perWeek) < 0.1) labelEl.textContent = `Stable · ${scope}`;
   else if(perWeek > 0) labelEl.textContent = `Trending up · +${perWeek.toFixed(2)} kg/wk · ${scope}`;
   else labelEl.textContent = `Trending down · ${perWeek.toFixed(2)} kg/wk · ${scope}`;
