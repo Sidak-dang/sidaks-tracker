@@ -310,6 +310,8 @@ body{
   font-family:'JetBrains Mono',monospace; font-size:12.5px; padding:8px 12px; border-radius:9px; cursor:pointer;
 }
 .tracker-btn:hover{ background:var(--accent-2); color:var(--surface); box-shadow:0 0 12px -6px var(--accent-2-glow); }
+.tracker-btn.selected{ background:var(--accent-2); color:var(--surface); box-shadow:0 0 12px -4px var(--accent-2-glow); }
+.tracker-confirm-row{ display:flex; gap:8px; margin-top:10px; }
 .weight-input-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .weight-input-row input{
   width:88px; background:var(--surface-2); border:1.5px solid var(--border); color:var(--text);
@@ -408,9 +410,12 @@ footer{ text-align:center; color:var(--text-faint); font-size:11px; margin-top:2
         </div>
       </div>
       <div class="tracker-actions">
-        <button type="button" class="tracker-btn" data-add="250">+250 ml</button>
-        <button type="button" class="tracker-btn" data-add="500">+500 ml</button>
-        <button type="button" class="tracker-btn" data-add="1000">+1 L</button>
+        <button type="button" class="tracker-btn" data-amt="250">+250 ml</button>
+        <button type="button" class="tracker-btn" data-amt="500">+500 ml</button>
+        <button type="button" class="tracker-btn" data-amt="1000">+1 L</button>
+      </div>
+      <div class="tracker-confirm-row">
+        <button type="button" class="save-btn" id="waterAddBtn" disabled>Add</button>
         <button type="button" class="reset-btn" id="waterResetBtn">Reset</button>
       </div>
       <div class="tracker-manual-row">
@@ -1407,9 +1412,17 @@ function renderWeightChart(){
   else labelEl.textContent = `Trending down · ${perWeek.toFixed(2)} kg/wk · ${scope}`;
 }
 
+// Tapping +250ml/+500ml/+1L only stages an amount (highlighted, not yet
+// recorded) — nothing touches the ring or the stored total until "Add" is
+// pressed. Staged per date so switching days doesn't carry a pending amount
+// over and silently add it to the wrong day.
+let selectedWaterPreset = null;
+let waterPresetIso = null;
+
 function renderTrackers(){
   const iso = isoDate(selected);
   const data = bioData(iso);
+  if(iso !== waterPresetIso){ selectedWaterPreset = null; waterPresetIso = iso; }
 
   const waterMl = data.water || 0;
   const goalMl = SETTINGS.waterGoalMl || 4000;
@@ -1421,6 +1434,12 @@ function renderTrackers(){
   const existingSvg = ringWrap.querySelector("svg");
   if(existingSvg){ updateRingSVG(existingSvg, pct, color); }
   else { ringWrap.innerHTML = ringSVG(pct, 56, 6, color); }
+
+  document.querySelectorAll(".tracker-btn[data-amt]").forEach(btn=>{
+    btn.classList.toggle("selected", parseInt(btn.dataset.amt,10)===selectedWaterPreset);
+  });
+  const waterAddBtn = document.getElementById("waterAddBtn");
+  if(waterAddBtn) waterAddBtn.disabled = selectedWaterPreset==null;
 
   const w = data.weight;
   const weightInput = document.getElementById("weightInput");
@@ -1532,17 +1551,25 @@ document.getElementById("exportAllBtn").addEventListener("click", ()=>{
 document.getElementById("prevBtn").addEventListener("click",()=>{ const dest=addDays(selected,-1); relockIfLeaving(dest); navDir="prev"; selected=dest; renderAll(); });
 document.getElementById("nextBtn").addEventListener("click",()=>{ const dest=addDays(selected,1); relockIfLeaving(dest); navDir="next"; selected=dest; renderAll(); });
 
-document.querySelectorAll(".tracker-btn[data-add]").forEach(btn=>{
+document.querySelectorAll(".tracker-btn[data-amt]").forEach(btn=>{
   btn.addEventListener("click", ()=>{
-    const data = bioData(isoDate(selected));
-    data.water = (data.water||0) + parseInt(btn.dataset.add,10);
-    saveBio();
+    const amt = parseInt(btn.dataset.amt,10);
+    selectedWaterPreset = (selectedWaterPreset===amt) ? null : amt;
     renderTrackers();
   });
+});
+document.getElementById("waterAddBtn").addEventListener("click", ()=>{
+  if(selectedWaterPreset==null) return;
+  const data = bioData(isoDate(selected));
+  data.water = (data.water||0) + selectedWaterPreset;
+  saveBio();
+  selectedWaterPreset = null;
+  renderTrackers();
 });
 document.getElementById("waterResetBtn").addEventListener("click", ()=>{
   bioData(isoDate(selected)).water = 0;
   saveBio();
+  selectedWaterPreset = null;
   renderTrackers();
 });
 function addManualWater(){
