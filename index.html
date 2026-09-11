@@ -171,6 +171,12 @@ body{
   cursor:pointer; white-space:nowrap; box-shadow:0 0 16px -7px var(--accent-2-glow);
 }
 .export-btn:hover{ background:var(--accent-2); color:var(--surface); box-shadow:0 0 18px -5px var(--accent-2-glow); }
+.export-all-link{
+  background:none; border:none; color:var(--text-faint);
+  font-family:'JetBrains Mono',monospace; font-size:11.5px;
+  text-decoration:underline; text-underline-offset:2px; cursor:pointer; padding:4px 2px;
+}
+.export-all-link:hover{ color:var(--text-dim); }
 .lock-banner{
   display:flex; align-items:center; gap:6px; margin:2px 0 4px; padding:9px 11px;
   background:var(--surface-2); border:1px solid var(--border); border-radius:10px;
@@ -285,6 +291,48 @@ body{
 .today-legend{ display:inline-flex; align-items:center; gap:4px; margin-left:9px; color:var(--accent-2); }
 .today-legend-dot{ width:6px; height:6px; border-radius:50%; background:var(--accent-2); box-shadow:0 0 5px -1px var(--accent-2-glow); display:inline-block; }
 
+/* water + weight trackers */
+.trackers-grid{ display:grid; grid-template-columns:1fr; gap:14px; margin-top:14px; }
+.tracker-card{ background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:16px 16px 14px; box-shadow:var(--shadow); }
+.tracker-head{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.tracker-head h3{ font-family:'Fraunces',serif; font-weight:600; font-size:15px; color:var(--text); margin:0; }
+.tracker-sub{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-faint); }
+.goal-edit-btn{ background:none; border:1px solid var(--border); color:var(--text-dim); font-family:'JetBrains Mono',monospace; font-size:11px; padding:4px 9px; border-radius:8px; cursor:pointer; }
+.goal-edit-btn:hover{ border-color:var(--text-faint); color:var(--text); }
+.tracker-main{ display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+.tracker-ring svg{ display:block; }
+.tracker-amount{ font-family:'Fraunces',serif; font-weight:700; font-size:24px; color:var(--text); line-height:1; }
+.tracker-amount .tracker-unit{ font-size:14px; font-weight:500; color:var(--text-dim); margin-left:3px; }
+.tracker-goal{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text-faint); margin-top:5px; }
+.tracker-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+.tracker-btn{
+  background:var(--accent-2-soft); border:1px solid var(--accent-2); color:var(--accent-2);
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; padding:8px 12px; border-radius:9px; cursor:pointer;
+}
+.tracker-btn:hover{ background:var(--accent-2); color:var(--surface); box-shadow:0 0 12px -6px var(--accent-2-glow); }
+.weight-input-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.weight-input-row input{
+  width:88px; background:var(--surface-2); border:1.5px solid var(--border); color:var(--text);
+  font-family:'Fraunces',serif; font-weight:700; font-size:20px; border-radius:10px; padding:8px 10px;
+}
+.weight-input-row input:focus{ outline:none; border-color:var(--accent); }
+.weight-input-row .tracker-unit{ font-size:13px; color:var(--text-dim); }
+.tracker-manual-row{ display:flex; align-items:center; gap:8px; margin-top:10px; }
+.tracker-manual-row input{
+  width:84px; background:var(--surface-2); border:1.5px solid var(--border); color:var(--text);
+  font-family:'JetBrains Mono',monospace; font-size:13px; border-radius:8px; padding:7px 9px;
+}
+.tracker-manual-row input:focus{ outline:none; border-color:var(--accent-2); }
+.tracker-manual-row .unit-suffix{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-dim); }
+.weight-chart-wrap{ margin-top:14px; }
+.weight-chart-svg{ width:100%; height:auto; display:block; overflow:visible; }
+.wc-line{ stroke:var(--accent-2); stroke-width:2; fill:none; }
+.wc-dot{ fill:var(--accent-2); }
+.wc-dot:hover{ fill:var(--accent-bright); }
+.weight-trend-label{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text-dim); margin-top:8px; }
+.weight-chart-empty{ font-size:12px; color:var(--text-faint); margin-top:10px; }
+@media (min-width:520px){ .trackers-grid{ grid-template-columns:1fr 1fr; } }
+
 footer{ text-align:center; color:var(--text-faint); font-size:11px; margin-top:20px; font-family:'JetBrains Mono',monospace; letter-spacing:0.02em; }
 
 @media (max-width:480px){
@@ -322,7 +370,8 @@ footer{ text-align:center; color:var(--text-faint); font-size:11px; margin-top:2
       <p class="lede">A 6-day push/pull/legs hypertrophy split. Tap a box to log a set — streaks and totals update as you go.</p>
       <div class="hero-actions">
         <div class="sync-pill"><span class="sdot"></span><span>saved on this phone</span></div>
-        <button type="button" class="export-btn" id="exportBtn" title="Download a CSV backup of everything you've logged">&#8681; Export backup</button>
+        <button type="button" class="export-btn" id="exportBtn">&#8681; <span id="exportBtnLabel">Export week</span></button>
+        <button type="button" class="export-all-link" id="exportAllBtn" title="Download a CSV of everything you've ever logged">export full history</button>
       </div>
     </div>
     <div class="hero-ring" id="heroRing"></div>
@@ -343,6 +392,48 @@ footer{ text-align:center; color:var(--text-faint); font-size:11px; margin-top:2
   </div>
 
   <div class="panel" id="panel"></div>
+
+  <div class="trackers-grid">
+    <div class="tracker-card" id="waterCard">
+      <div class="tracker-head">
+        <h3>Water intake</h3>
+        <button type="button" class="goal-edit-btn" id="waterGoalBtn">edit goal</button>
+      </div>
+      <div class="tracker-main">
+        <div class="tracker-ring" id="waterRing"></div>
+        <div class="tracker-figures">
+          <div class="tracker-amount"><span id="waterAmt">0.00</span><span class="tracker-unit">L</span></div>
+          <div class="tracker-goal">of <span id="waterGoalLabel">4.0</span> L goal</div>
+        </div>
+      </div>
+      <div class="tracker-actions">
+        <button type="button" class="tracker-btn" data-add="250">+250 ml</button>
+        <button type="button" class="tracker-btn" data-add="500">+500 ml</button>
+        <button type="button" class="tracker-btn" data-add="1000">+1 L</button>
+        <button type="button" class="reset-btn" id="waterResetBtn">Reset</button>
+      </div>
+      <div class="tracker-manual-row">
+        <input type="number" inputmode="decimal" step="0.01" min="0" id="waterManualInput" placeholder="0.33">
+        <span class="unit-suffix">L</span>
+        <button type="button" class="tracker-btn" id="waterManualAddBtn">Add</button>
+      </div>
+    </div>
+
+    <div class="tracker-card" id="weightCard">
+      <div class="tracker-head">
+        <h3>Body weight</h3>
+        <span class="tracker-sub" id="weightTrend"></span>
+      </div>
+      <div class="weight-input-row">
+        <input type="number" inputmode="decimal" step="0.1" min="0" id="weightInput" placeholder="not logged">
+        <span class="tracker-unit">kg</span>
+        <button type="button" class="save-btn" id="weightSaveBtn">Log</button>
+        <button type="button" class="cancel-btn" id="weightClearBtn">Clear</button>
+      </div>
+      <div class="weight-chart-wrap" id="weightChartWrap"></div>
+      <div class="weight-trend-label" id="weightTrendLabel"></div>
+    </div>
+  </div>
 
   <div class="consistency-card">
     <div class="consistency-head">
@@ -568,6 +659,23 @@ let STORE = {};
 try{ STORE = JSON.parse(localStorage.getItem(LKEY) || "{}"); }catch(e){ STORE = {}; }
 function saveLocal(){ try{ localStorage.setItem(LKEY, JSON.stringify(STORE)); }catch(e){} }
 function dayData(iso){ if(!STORE[iso]) STORE[iso] = {}; return STORE[iso]; }
+
+// Water + weight live in their own store, separate from the workout STORE
+// above. Keeping them out of STORE[iso] means they're untouched by the
+// past-day edit lock and its "revert to baseline on leave" logic (which
+// would otherwise wipe out a same-day water/weight edit made while a past
+// workout was mid-edit) — so these two stay freely editable on any date.
+const BKEY = "sidaks-tracker-bio-v1";
+let BIO = {};
+try{ BIO = JSON.parse(localStorage.getItem(BKEY) || "{}"); }catch(e){ BIO = {}; }
+function saveBio(){ try{ localStorage.setItem(BKEY, JSON.stringify(BIO)); }catch(e){} }
+function bioData(iso){ if(!BIO[iso]) BIO[iso] = {}; return BIO[iso]; }
+
+const SKEY = "sidaks-tracker-settings-v1";
+let SETTINGS = {};
+try{ SETTINGS = JSON.parse(localStorage.getItem(SKEY) || "{}"); }catch(e){ SETTINGS = {}; }
+function saveSettings(){ try{ localStorage.setItem(SKEY, JSON.stringify(SETTINGS)); }catch(e){} }
+if(SETTINGS.waterGoalMl == null) SETTINGS.waterGoalMl = 4000;
 
 function sectionExercises(day){
   if(day.type==="rest") return [];
@@ -1259,43 +1367,141 @@ function renderChart(){
   }
 }
 
+// Sparkline of logged weigh-ins over time, plus a trend read (up/down/stable)
+// from an ordinary least-squares fit of weight against days-since-first-entry
+// — a straight regression slope rather than just "first vs last", so one
+// off day doesn't swing the label.
+const WC_W = 300, WC_H = 84, WC_PAD_X = 6, WC_PAD_Y = 10, WC_MAX_POINTS = 20;
+function renderWeightChart(){
+  const wrap = document.getElementById("weightChartWrap");
+  const labelEl = document.getElementById("weightTrendLabel");
+  const entries = Object.keys(BIO).filter(k=>BIO[k] && BIO[k].weight!=null).sort();
+  if(entries.length < 2){
+    wrap.innerHTML = `<div class="weight-chart-empty">Log weight on a few more days to see your trend.</div>`;
+    labelEl.textContent = "";
+    return;
+  }
+  const recent = entries.slice(-WC_MAX_POINTS).map(iso=>({iso, w:BIO[iso].weight}));
+  const firstMs = new Date(recent[0].iso+"T00:00:00").getTime();
+  const xs = recent.map(e=>(new Date(e.iso+"T00:00:00").getTime()-firstMs)/86400000);
+  const ys = recent.map(e=>e.w);
+  const minW = Math.min(...ys), maxW = Math.max(...ys);
+  const rangeW = Math.max(0.2, maxW-minW);
+  const maxX = Math.max(1, xs[xs.length-1]);
+  const toX = x => WC_PAD_X + (x/maxX)*(WC_W-2*WC_PAD_X);
+  const toY = y => (WC_H-WC_PAD_Y) - ((y-minW)/rangeW)*(WC_H-2*WC_PAD_Y);
+  const pts = xs.map((x,i)=>[toX(x), toY(ys[i])]);
+  const path = pts.map((p,i)=>(i===0?"M":"L")+p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ");
+  const dots = pts.map((p,i)=>`<circle class="wc-dot" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.6"><title>${recent[i].iso}: ${recent[i].w} kg</title></circle>`).join("");
+  wrap.innerHTML = `<svg class="weight-chart-svg" viewBox="0 0 ${WC_W} ${WC_H}" role="img" aria-label="Weight over time"><path class="wc-line" d="${path}"></path>${dots}</svg>`;
+
+  const n = xs.length;
+  const meanX = xs.reduce((a,b)=>a+b,0)/n, meanY = ys.reduce((a,b)=>a+b,0)/n;
+  let num=0, den=0;
+  for(let i=0;i<n;i++){ num += (xs[i]-meanX)*(ys[i]-meanY); den += (xs[i]-meanX)**2; }
+  const perWeek = (den>0 ? num/den : 0) * 7;
+  const scope = entries.length > WC_MAX_POINTS ? `last ${WC_MAX_POINTS} logs` : `${n} logs`;
+  if(Math.abs(perWeek) < 0.1) labelEl.textContent = `Stable · ${scope}`;
+  else if(perWeek > 0) labelEl.textContent = `Trending up · +${perWeek.toFixed(2)} kg/wk · ${scope}`;
+  else labelEl.textContent = `Trending down · ${perWeek.toFixed(2)} kg/wk · ${scope}`;
+}
+
+function renderTrackers(){
+  const iso = isoDate(selected);
+  const data = bioData(iso);
+
+  const waterMl = data.water || 0;
+  const goalMl = SETTINGS.waterGoalMl || 4000;
+  const pct = goalMl>0 ? Math.round(100*waterMl/goalMl) : 0;
+  const color = pct>=100 ? "var(--good)" : "var(--accent-2)";
+  document.getElementById("waterGoalLabel").textContent = (goalMl/1000).toFixed(1);
+  document.getElementById("waterAmt").textContent = (waterMl/1000).toFixed(2);
+  const ringWrap = document.getElementById("waterRing");
+  const existingSvg = ringWrap.querySelector("svg");
+  if(existingSvg){ updateRingSVG(existingSvg, pct, color); }
+  else { ringWrap.innerHTML = ringSVG(pct, 56, 6, color); }
+
+  const w = data.weight;
+  const weightInput = document.getElementById("weightInput");
+  if(document.activeElement !== weightInput){ weightInput.value = (w!=null) ? w : ""; }
+  const trendEl = document.getElementById("weightTrend");
+  if(w == null){
+    trendEl.textContent = "";
+  } else {
+    const prevIso = Object.keys(BIO).filter(k=>k<iso && BIO[k] && BIO[k].weight!=null).sort().pop();
+    if(prevIso){
+      const diff = w - BIO[prevIso].weight;
+      trendEl.textContent = `${diff>0?"+":""}${diff.toFixed(1)} kg vs last log`;
+    } else {
+      trendEl.textContent = "first log";
+    }
+  }
+  renderWeightChart();
+}
+
+function updateExportButton(){
+  const weekStart = startOfWeekMon(selected);
+  const weekEnd = addDays(weekStart,6);
+  const rangeTxt = `${weekStart.toLocaleDateString(undefined,{month:"short",day:"numeric"})}–${weekEnd.toLocaleDateString(undefined,{month:"short",day:"numeric"})}`;
+  document.getElementById("exportBtnLabel").textContent = `Export week (${rangeTxt})`;
+  document.getElementById("exportBtn").title = `Download this week's log (${isoDate(weekStart)} to ${isoDate(weekEnd)}) as CSV`;
+}
+
 function renderAll(){
   renderDateNav();
   renderPanel();
   renderHeader();
   renderWeekStrip();
   renderChart();
+  renderTrackers();
+  updateExportButton();
   navDir = null;
 }
 
-/* ---- backup export ----
-   Only real, persisted data lives here — localStorage on one device, no
-   account, no server. "Export backup" turns the whole history into a CSV
-   (one row per logged set) so it's never more than a download away from
-   being safe somewhere else: a Drive folder, an email to yourself, etc.
-   It always exports everything ever logged, not just this week or month —
-   a backup that quietly drops older data isn't much of a backup. */
+/* ---- export ----
+   Everything lives in localStorage on one device, no account, no server —
+   "Export" turns a log into a CSV so it's a download away from being safe
+   somewhere else: a Drive folder, an email to yourself, etc.
+
+   The main button is scoped to a single Mon–Sun week (the week containing
+   whichever date is currently selected in the day nav), so it stays a quick
+   per-week snapshot instead of a growing all-time file. The small "export
+   full history" link alongside it covers the other case — a one-click
+   backup of everything ever logged, same format, no date filter.
+
+   One row per day within scope (not per set) — sets done/total, water,
+   weight — only for days with something actually logged. */
 function csvEscape(val){
   const s = String(val);
   return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
 }
 
-function exportBackupCSV(){
-  const header = ["date","weekday","focus","section","exercise","target_sets","target_reps","set_number","completed"];
+// weekStart/weekEnd omitted (or null) exports every logged day, no date filter.
+function exportCSV(weekStart, weekEnd){
+  const startIso = weekStart ? isoDate(weekStart) : null;
+  const endIso = weekEnd ? isoDate(weekEnd) : null;
+  const header = ["date","weekday","focus","sets_done","sets_total","completion_pct","water_l","water_goal_l","weight_kg"];
   const lines = [header.map(csvEscape).join(",")];
-  Object.keys(STORE).sort().forEach(iso=>{
+  const isoSet = new Set([...Object.keys(STORE), ...Object.keys(BIO)]);
+  Array.from(isoSet).filter(iso => (!startIso || iso>=startIso) && (!endIso || iso<=endIso)).sort().forEach(iso=>{
     const [y,m,dd] = iso.split("-").map(Number);
     const d = new Date(y, m-1, dd);
     const day = PLAN[planIndex(d)];
-    if(!day || day.type === "rest") return;
-    const data = STORE[iso] || {};
-    sectionExercises(day).forEach(({sec, idx, e})=>{
-      const sets = parseInt(e[1],10);
-      const arr = data[sec+idx] || [];
-      for(let s=0; s<sets; s++){
-        lines.push([iso, day.name, day.focus, sec, e[0], sets, e[2], s+1, arr[s] ? "yes" : "no"].map(csvEscape).join(","));
-      }
-    });
+    if(!day) return;
+    const isTrain = day.type !== "rest";
+    const p = isTrain ? peekProgress(iso, day) : {done:0,total:0};
+    const bio = BIO[iso] || {};
+    const waterMl = bio.water || 0;
+    const weightKg = bio.weight;
+    const hasAnything = (isTrain && p.done>0) || waterMl>0 || weightKg!=null;
+    if(!hasAnything) return;
+    lines.push([
+      iso, day.name, day.focus,
+      isTrain ? p.done : "", isTrain ? p.total : "", isTrain && p.total ? Math.round(100*p.done/p.total) : "",
+      (waterMl/1000).toFixed(2),
+      ((SETTINGS.waterGoalMl||4000)/1000).toFixed(1),
+      weightKg!=null ? weightKg : ""
+    ].map(csvEscape).join(","));
   });
   return lines.join("\r\n");
 }
@@ -1312,11 +1518,71 @@ function downloadTextFile(filename, text, mime){
 }
 
 document.getElementById("exportBtn").addEventListener("click", ()=>{
-  downloadTextFile(`sidaks-tracker-backup-${isoDate(TODAY)}.csv`, exportBackupCSV(), "text/csv;charset=utf-8;");
+  const weekStart = startOfWeekMon(selected);
+  const weekEnd = addDays(weekStart,6);
+  const startIso = isoDate(weekStart), endIso = isoDate(weekEnd);
+  downloadTextFile(`sidaks-tracker-${startIso}_to_${endIso}.csv`, exportCSV(weekStart, weekEnd), "text/csv;charset=utf-8;");
+});
+
+document.getElementById("exportAllBtn").addEventListener("click", ()=>{
+  downloadTextFile(`sidaks-tracker-full-history-${isoDate(TODAY)}.csv`, exportCSV(), "text/csv;charset=utf-8;");
 });
 
 document.getElementById("prevBtn").addEventListener("click",()=>{ const dest=addDays(selected,-1); relockIfLeaving(dest); navDir="prev"; selected=dest; renderAll(); });
 document.getElementById("nextBtn").addEventListener("click",()=>{ const dest=addDays(selected,1); relockIfLeaving(dest); navDir="next"; selected=dest; renderAll(); });
+
+document.querySelectorAll(".tracker-btn[data-add]").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    const data = bioData(isoDate(selected));
+    data.water = (data.water||0) + parseInt(btn.dataset.add,10);
+    saveBio();
+    renderTrackers();
+  });
+});
+document.getElementById("waterResetBtn").addEventListener("click", ()=>{
+  bioData(isoDate(selected)).water = 0;
+  saveBio();
+  renderTrackers();
+});
+function addManualWater(){
+  const input = document.getElementById("waterManualInput");
+  const val = parseFloat(input.value);
+  if(!isFinite(val) || val<=0) return;
+  const data = bioData(isoDate(selected));
+  data.water = (data.water||0) + Math.round(val*1000);
+  saveBio();
+  input.value = "";
+  renderTrackers();
+}
+document.getElementById("waterManualAddBtn").addEventListener("click", addManualWater);
+document.getElementById("waterManualInput").addEventListener("keydown", (e)=>{
+  if(e.key==="Enter") addManualWater();
+});
+document.getElementById("waterGoalBtn").addEventListener("click", ()=>{
+  const input = window.prompt("Daily water goal, in liters:", (SETTINGS.waterGoalMl/1000));
+  if(input===null) return;
+  const val = parseFloat(input);
+  if(!isFinite(val) || val<=0) return;
+  SETTINGS.waterGoalMl = Math.round(val*1000);
+  saveSettings();
+  renderTrackers();
+});
+document.getElementById("weightSaveBtn").addEventListener("click", ()=>{
+  const input = document.getElementById("weightInput");
+  const val = parseFloat(input.value);
+  if(!isFinite(val) || val<=0) return;
+  bioData(isoDate(selected)).weight = Math.round(val*10)/10;
+  saveBio();
+  renderTrackers();
+});
+document.getElementById("weightInput").addEventListener("keydown", (e)=>{
+  if(e.key==="Enter") document.getElementById("weightSaveBtn").click();
+});
+document.getElementById("weightClearBtn").addEventListener("click", ()=>{
+  delete bioData(isoDate(selected)).weight;
+  saveBio();
+  renderTrackers();
+});
 
 renderAll();
 
