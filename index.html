@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Sidak's Tracker</title>
 <meta name="description" content="6-day push/pull/legs hypertrophy tracker">
-<meta name="theme-color" content="#141319">
+<meta name="theme-color" content="#0a0912">
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.svg">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
@@ -13,22 +13,28 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Sidak's Tracker">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;600;700;800&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap"></noscript>
 <style>
 :root{
-  --bg:#141319;
-  --surface:#1f1c27;
-  --surface-2:#2a2632;
-  --border:#3a3440;
-  --text:#ece8f2;
-  --text-dim:#a79fb3;
-  --text-faint:#766d81;
-  --accent:#8f7be0;
-  --accent-soft:#8f7be026;
-  --accent-2:#3f7d78;
-  --good:#86a06f;
-  --rest:#b0966c;
-  --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 10px 30px -14px rgba(0,0,0,0.6);
+  --bg:#0a0912;
+  --surface:#15121f;
+  --surface-2:#1e1a2c;
+  --border:#302a44;
+  --text:#f1eefb;
+  --text-dim:#aca0c9;
+  --text-faint:#726a8a;
+  --accent:#9d7bff;
+  --accent-bright:#bda3ff;
+  --accent-soft:#9d7bff24;
+  --accent-glow:rgba(157,123,255,0.55);
+  --accent-2:#33d9f0;
+  --accent-2-soft:#33d9f022;
+  --accent-2-glow:rgba(51,217,240,0.45);
+  --good:#4fd7a6;
+  --rest:#caa06b;
+  --shadow: 0 1px 2px rgba(0,0,0,0.5), 0 14px 34px -16px rgba(0,0,0,0.75);
 }
 *{box-sizing:border-box;}
 html,body{margin:0;}
@@ -37,23 +43,23 @@ body{
   color:var(--text);
   font-family:'Work Sans',ui-sans-serif,system-ui,sans-serif;
   -webkit-font-smoothing:antialiased;
+  padding-top:env(safe-area-inset-top);
   padding-bottom:env(safe-area-inset-bottom);
 }
 .wrap{
   max-width:640px;
   margin:0 auto;
-  padding:18px 16px 56px;
+  padding:20px 16px 56px;
 }
 
-/* header */
-header.top{
-  display:flex; align-items:center; justify-content:space-between; gap:10px;
-}
-.title-block h1{
-  font-family:'Big Shoulders Display',sans-serif;
-  font-weight:700; font-size:18px; letter-spacing:0.04em; text-transform:uppercase;
-  margin:0; color:var(--text-dim);
-}
+/* hero */
+.hero{ display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin-bottom:20px; }
+.hero-text{ flex:1; min-width:0; }
+.eyebrow{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--text-faint); margin:0 0 10px; }
+.hero-text h1{ font-family:'Fraunces',serif; font-weight:600; font-size:clamp(30px,8vw,42px); line-height:1.05; margin:0 0 10px; color:var(--text); letter-spacing:-0.01em; }
+.lede{ font-size:14px; line-height:1.6; color:var(--text-dim); margin:0 0 14px; max-width:44ch; }
+.hero .sync-pill{ margin-top:2px; }
+
 .sync-pill{
   display:inline-flex; align-items:center; gap:6px;
   font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--good);
@@ -61,11 +67,52 @@ header.top{
 }
 .sync-pill .sdot{width:6px;height:6px;border-radius:50%;background:var(--good);}
 
+.hero-ring{ flex-shrink:0; display:flex; align-items:center; gap:12px; padding-top:6px; }
+.ring-wrap{ position:relative; width:64px; height:64px; flex-shrink:0; }
+.ring-wrap svg{ display:block; overflow:visible; }
+.ring-progress{ transition: stroke-dashoffset .5s cubic-bezier(.22,.7,.3,1), stroke .3s ease; }
+.ring-glow{ transition: stroke-dashoffset .5s cubic-bezier(.22,.7,.3,1), stroke .3s ease, opacity .4s ease; }
+.ring-text{ display:flex; flex-direction:column; width:70px; flex-shrink:0; }
+.ring-frac{ font-family:'Fraunces',serif; font-weight:700; font-size:22px; color:var(--text); line-height:1.1; white-space:nowrap; font-variant-numeric:tabular-nums; overflow:visible; }
+.ring-label{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-faint); margin-top:3px; }
+
+/* stat cards */
+.stats-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:22px; }
+.stat-card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px 12px; box-shadow:var(--shadow); }
+.stat-num{ font-family:'Fraunces',serif; font-weight:700; font-size:26px; color:var(--text); line-height:1; }
+.stat-unit{ font-size:13px; font-weight:500; color:var(--text-dim); margin-left:2px; }
+.stat-label{ font-size:12px; color:var(--text-dim); margin-top:7px; }
+.stat-sub{ font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-faint); margin-top:3px; }
+
+/* week head + strip */
+.week-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin:2px 0 10px; flex-wrap:wrap; }
+.week-head h2{ font-family:'Fraunces',serif; font-weight:600; font-size:19px; margin:0; color:var(--text); }
+.week-range{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-faint); }
+
+.week-strip{ display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:16px; }
+.week-chip{
+  display:flex; flex-direction:column; align-items:center; gap:5px;
+  background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  padding:8px 2px 9px; cursor:pointer;
+  transition:border-color .15s ease, background .15s ease;
+}
+.week-chip:hover{ border-color:var(--text-faint); }
+.week-chip.sel{ border-color:var(--accent); background:var(--accent-soft); box-shadow:0 0 0 1px var(--accent-soft), 0 0 14px -4px var(--accent-glow); }
+.week-chip.is-today:not(.sel){ border-color:var(--accent-soft); }
+.wc-day{ font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.05em; color:var(--text-faint); }
+.week-chip.is-today .wc-day{ color:var(--accent); }
+.wc-date{ font-family:'Fraunces',serif; font-weight:600; font-size:15px; color:var(--text); }
+.wc-dot{ width:15px; height:15px; border-radius:50%; border:1.5px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:8.5px; color:var(--surface); }
+.wc-dot.rest{ background:var(--rest); border-color:var(--rest); }
+.wc-dot.complete{ background:var(--accent); border-color:var(--accent); box-shadow:0 0 10px -2px var(--accent-glow); }
+.wc-dot.partial{ border-color:var(--accent-2); background:var(--accent-2-soft); }
+.wc-dot.empty{ background:transparent; }
+
 /* date navigator */
 .date-nav{
   display:flex; align-items:center; gap:8px;
   background:var(--surface); border:1px solid var(--border); border-radius:18px;
-  box-shadow:var(--shadow); padding:16px 6px; margin:16px 0 16px;
+  box-shadow:var(--shadow); padding:16px 6px; margin:0 0 16px;
 }
 .nav-arrow{
   flex-shrink:0; width:46px; height:46px; border-radius:13px;
@@ -73,7 +120,7 @@ header.top{
   font-size:21px; cursor:pointer; display:flex; align-items:center; justify-content:center;
   transition: background .15s ease, color .15s ease, border-color .15s ease, transform .08s ease;
 }
-.nav-arrow:hover{ background:var(--accent-soft); color:var(--accent); border-color:var(--accent); }
+.nav-arrow:hover{ background:var(--accent-soft); color:var(--accent); border-color:var(--accent); box-shadow:0 0 14px -6px var(--accent-glow); }
 .nav-arrow:active{ transform:scale(0.92); }
 .date-center{ flex:1; min-width:0; text-align:center; overflow:hidden; }
 .wd-row{ display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; }
@@ -81,7 +128,7 @@ header.top{
 .today-badge{ font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--accent); border:1px solid var(--accent); border-radius:20px; padding:1.5px 8px; }
 .today-chip{ font-family:'Work Sans',sans-serif; font-size:11px; color:var(--text-dim); background:none; border:1px solid var(--border); border-radius:20px; padding:2.5px 10px; cursor:pointer; }
 .today-chip:hover{ border-color:var(--text-faint); color:var(--text); }
-.date-big{ font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:clamp(30px,9vw,40px); line-height:1; margin:3px 0 5px; color:var(--text); }
+.date-big{ font-family:'Fraunces',serif; font-weight:700; font-size:clamp(28px,9vw,38px); line-height:1; margin:3px 0 5px; color:var(--text); }
 .date-big.rest{ color:var(--rest); }
 .focus-big{ font-size:14px; color:var(--text-dim); }
 
@@ -101,22 +148,70 @@ header.top{
 .panel-head .sub{ color:var(--text-dim); font-size:13px; }
 .progress-pill{ display:flex; align-items:center; gap:8px; font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--text-dim); }
 .progress-pill .track{ width:74px; height:6px; border-radius:4px; background:var(--surface-2); overflow:hidden; }
-.progress-pill .track i{ display:block; height:100%; background:var(--accent); width:0%; transition:width .3s ease; }
+.progress-pill .track i{ display:block; height:100%; background:var(--accent); width:0%; transition:width .45s cubic-bezier(.22,.7,.3,1); }
 .reset-btn{ background:none; border:1px solid var(--border); color:var(--text-dim); font-size:12px; padding:6px 11px; border-radius:8px; cursor:pointer; }
 .reset-btn:hover{ border-color:var(--text-faint); color:var(--text); }
 
+/* past-day lock / edit controls */
+.lock-tag{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-faint); margin-left:8px; white-space:nowrap; }
+.edit-btn{ background:none; border:1px solid var(--accent); color:var(--accent-bright); font-size:12px; padding:6px 11px; border-radius:8px; cursor:pointer; white-space:nowrap; }
+.edit-btn:hover{ background:var(--accent-soft); box-shadow:0 0 12px -6px var(--accent-glow); }
+.save-btn{ background:none; border:1px solid var(--accent); color:var(--accent-bright); font-size:12px; padding:6px 11px; border-radius:8px; cursor:pointer; white-space:nowrap; }
+.save-btn:hover:not(:disabled){ background:var(--accent-soft); box-shadow:0 0 12px -6px var(--accent-glow); }
+.save-btn:disabled{ opacity:.35; cursor:not-allowed; border-color:var(--border); color:var(--text-faint); background:none; box-shadow:none; }
+.cancel-btn{ background:none; border:1px solid var(--border); color:var(--text-dim); font-size:12px; padding:6px 11px; border-radius:8px; cursor:pointer; white-space:nowrap; }
+.cancel-btn:hover{ border-color:var(--text-faint); color:var(--text); }
+
+/* backup export */
+.hero-actions{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px; }
+.export-btn{
+  display:inline-flex; align-items:center; gap:7px;
+  font-family:'JetBrains Mono',monospace; font-weight:600; font-size:13.5px; color:var(--accent-2);
+  background:var(--accent-2-soft); border:1.5px solid var(--accent-2); border-radius:10px; padding:10px 18px;
+  cursor:pointer; white-space:nowrap; box-shadow:0 0 16px -7px var(--accent-2-glow);
+}
+.export-btn:hover{ background:var(--accent-2); color:var(--surface); box-shadow:0 0 18px -5px var(--accent-2-glow); }
+.lock-banner{
+  display:flex; align-items:center; gap:6px; margin:2px 0 4px; padding:9px 11px;
+  background:var(--surface-2); border:1px solid var(--border); border-radius:10px;
+  font-size:12.5px; color:var(--text-dim); line-height:1.4;
+}
+.panel-inner.locked .setbox{ opacity:.4; cursor:not-allowed; pointer-events:none; }
+.panel-inner.locked .sec-check{ opacity:.4; cursor:not-allowed; pointer-events:none; }
+.panel-inner.locked .ex-name{ color:var(--text-dim); }
+
 .rest-note{ padding:22px 2px 26px; color:var(--text-dim); font-size:14.5px; line-height:1.6; }
-.rest-note b{ color:var(--text); font-family:'Big Shoulders Display',sans-serif; font-size:20px; display:block; margin-bottom:6px; letter-spacing:0.02em; }
+.rest-note b{ color:var(--text); font-family:'Fraunces',serif; font-weight:700; font-size:21px; display:block; margin-bottom:6px; letter-spacing:0; }
 
 /* accordion sections */
 .acc{ border-top:1px solid var(--border); }
 .acc:first-of-type{ margin-top:10px; }
+.acc-head-row{ display:flex; align-items:center; gap:10px; padding:13px 2px; }
 .acc-head{
-  width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px;
-  background:none; border:none; cursor:pointer; padding:13px 2px; color:var(--text);
-  font-family:'Big Shoulders Display',sans-serif; font-weight:600; font-size:14.5px;
-  letter-spacing:0.07em; text-transform:uppercase;
+  flex:1; min-width:0; display:flex; align-items:center; justify-content:space-between; gap:10px;
+  background:none; border:none; cursor:pointer; padding:0; color:var(--text);
+  font-family:'Fraunces',serif; font-weight:600; font-size:16px;
+  letter-spacing:0; text-transform:none;
 }
+
+/* section-level "select all" checkbox */
+.sec-check{
+  flex-shrink:0; width:20px; height:20px; border-radius:6px; border:1.5px solid var(--border);
+  background:var(--surface-2); cursor:pointer; padding:0; display:flex; align-items:center; justify-content:center;
+  transition:background .12s ease, border-color .12s ease;
+}
+.sec-check:hover{ border-color:var(--text-faint); }
+.acc.main .sec-check:hover{ border-color:var(--accent); background:var(--accent-soft); }
+.acc.core .sec-check:hover, .acc.cooldown .sec-check:hover, .acc.warmup .sec-check:hover{ border-color:var(--accent-2); background:var(--accent-2-soft); }
+.sec-check.on{ background:var(--accent); border-color:var(--accent); box-shadow:0 0 8px -3px var(--accent-glow); }
+.sec-check.on::after{ content:""; width:9px; height:5px; border-left:2px solid var(--surface); border-bottom:2px solid var(--surface); transform:rotate(-45deg) translate(1px,-1px); }
+.acc.core .sec-check.on, .acc.cooldown .sec-check.on, .acc.warmup .sec-check.on{ background:var(--accent-2); border-color:var(--accent-2); box-shadow:0 0 8px -3px var(--accent-2-glow); }
+.sec-check.indeterminate{ border-color:var(--accent); background:var(--surface-2); }
+.sec-check.indeterminate::after{ content:""; width:9px; height:2px; border-radius:1px; background:var(--accent); }
+.acc.core .sec-check.indeterminate, .acc.cooldown .sec-check.indeterminate, .acc.warmup .sec-check.indeterminate{ border-color:var(--accent-2); }
+.acc.core .sec-check.indeterminate::after, .acc.cooldown .sec-check.indeterminate::after, .acc.warmup .sec-check.indeterminate::after{ background:var(--accent-2); }
+.sec-check.pop{ animation:pop .35s ease; }
+
 .acc-left{ display:flex; align-items:center; gap:9px; color:var(--text-faint); }
 .acc.main .acc-left .dot{ background:var(--accent); }
 .acc-left .dot{ width:8px; height:8px; border-radius:50%; background:var(--accent-2); flex-shrink:0; }
@@ -140,9 +235,11 @@ header.top{
   transition:background .12s ease, border-color .12s ease;
 }
 .setbox:hover{ border-color:var(--text-faint); }
-.setbox.on{ background:var(--accent); border-color:var(--accent); }
+.acc.main .setbox:hover{ border-color:var(--accent); background:var(--accent-soft); }
+.acc.core .setbox:hover, .acc.cooldown .setbox:hover, .acc.warmup .setbox:hover{ border-color:var(--accent-2); background:var(--accent-2-soft); }
+.setbox.on{ background:var(--accent); border-color:var(--accent); box-shadow:0 0 10px -3px var(--accent-glow); }
 .setbox.on::after{ content:""; width:13px; height:8px; border-left:2.5px solid var(--surface); border-bottom:2.5px solid var(--surface); transform:rotate(-45deg) translate(1.5px,-1.5px); }
-.acc.core .setbox.on, .acc.cooldown .setbox.on, .acc.warmup .setbox.on{ background:var(--accent-2); border-color:var(--accent-2); }
+.acc.core .setbox.on, .acc.cooldown .setbox.on, .acc.warmup .setbox.on{ background:var(--accent-2); border-color:var(--accent-2); box-shadow:0 0 10px -3px var(--accent-2-glow); }
 .setbox.pop{ animation:pop .35s ease; }
 @keyframes pop{ 0%{transform:scale(1);} 45%{transform:scale(1.3);} 100%{transform:scale(1);} }
 
@@ -155,24 +252,62 @@ header.top{
   100%{ transform:translate(-50%,-50%) translate(var(--dx),var(--dy)) scale(0.3); opacity:0; }
 }
 
-/* progress chart */
-.chart-card{ background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:16px 16px 12px; margin-top:14px; box-shadow:var(--shadow); }
-.chart-head{ display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:6px; margin-bottom:6px; }
-.chart-head h3{ font-family:'Big Shoulders Display',sans-serif; font-weight:600; font-size:13px; letter-spacing:0.09em; text-transform:uppercase; color:var(--text-faint); margin:0; }
-.chart-stat{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-dim); }
-.chart-stat b{ color:var(--text); font-weight:600; }
-svg.chart{ width:100%; height:auto; display:block; overflow:visible; }
-svg.chart text{ font-family:'JetBrains Mono',monospace; }
+/* consistency heatmap */
+.consistency-card{ background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:16px 16px 14px; margin-top:14px; box-shadow:var(--shadow); }
+.consistency-head{ display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:6px; margin-bottom:11px; }
+.consistency-head h3{ font-family:'Fraunces',serif; font-weight:600; font-size:15px; letter-spacing:0; text-transform:none; color:var(--text-faint); margin:0; }
+.consistency-stat{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-dim); }
+.consistency-stat b{ color:var(--text); font-weight:600; }
+
+.weekbars-wrap{ padding:8px 2px 0; display:flex; justify-content:center; }
+.weekbars{ width:100%; max-width:300px; height:auto; display:block; overflow:visible; }
+.hm-cell{
+  stroke-width:1; transform-box:fill-box; transform-origin:center;
+  transition:fill .3s ease, opacity .3s ease, stroke .3s ease;
+  animation:hmPop .4s cubic-bezier(.22,.7,.3,1) backwards;
+}
+@keyframes hmPop{ from{ transform:scale(.4); opacity:0; } to{ transform:scale(1); opacity:1; } }
+.hm-cell.future{ fill:var(--surface-2); stroke:var(--border); stroke-dasharray:1.5 1.5; opacity:.4; }
+.hm-cell.rest{ fill:var(--rest); stroke:var(--rest); opacity:.5; }
+.hm-cell.lvl0{ fill:var(--surface-2); stroke:var(--border); }
+.hm-cell.lvl1{ fill:var(--accent); stroke:none; opacity:.32; }
+.hm-cell.lvl2{ fill:var(--accent); stroke:none; opacity:.6; }
+.hm-cell.lvl3{ fill:var(--accent); stroke:none; opacity:.88; }
+.hm-cell.lvl4{ fill:var(--accent-bright); stroke:none; opacity:1; filter:drop-shadow(0 0 3px var(--accent-glow)); }
+.hm-cell.today{ stroke:var(--accent-2); stroke-width:1.8; filter:drop-shadow(0 0 3px var(--accent-2-glow)); }
+.hm-cell.clickable{ cursor:pointer; }
+.hm-cell.clickable:hover{ stroke:var(--accent); stroke-width:1.5; }
+.hm-today-pin{ fill:var(--accent-2); animation:todayPulse 2s ease-in-out infinite; }
+@keyframes todayPulse{ 0%,100%{ opacity:1; } 50%{ opacity:.4; } }
+.hm-daylabel{ font-family:'JetBrains Mono',monospace; font-size:8px; fill:var(--text-faint); }
+.hm-label{ font-family:'JetBrains Mono',monospace; font-size:8.5px; fill:var(--text-faint); }
+.weekbars-caption{ text-align:center; font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--text-faint); margin-top:9px; }
+.today-legend{ display:inline-flex; align-items:center; gap:4px; margin-left:9px; color:var(--accent-2); }
+.today-legend-dot{ width:6px; height:6px; border-radius:50%; background:var(--accent-2); box-shadow:0 0 5px -1px var(--accent-2-glow); display:inline-block; }
 
 footer{ text-align:center; color:var(--text-faint); font-size:11px; margin-top:20px; font-family:'JetBrains Mono',monospace; letter-spacing:0.02em; }
 
+@media (max-width:480px){
+  .hero{ flex-direction:column; }
+  .hero-ring{ margin-top:4px; }
+  .stats-grid{ grid-template-columns:repeat(2,1fr); }
+}
 @media (max-width:420px){
   .setbox{ width:30px; height:30px; }
+  .sec-check{ width:18px; height:18px; }
+  .hm-label{ font-size:7.5px; }
+  .hm-daylabel{ font-size:7px; }
+  .weekbars-caption{ font-size:9.5px; }
   .sets{ max-width:130px; }
   .ex-scheme{ min-width:56px; font-size:12.5px; }
+  .week-strip{ gap:4px; }
+  .wc-day{ font-size:9px; }
+  .wc-date{ font-size:13px; }
+  .week-chip{ padding:6px 1px 7px; }
 }
 @media (prefers-reduced-motion:reduce){
   .panel-inner, .date-center, .setbox.pop{ animation:none !important; }
+  .hm-cell, .hm-today-pin{ animation:none !important; }
   .spark{ display:none; }
   *{ transition-duration:.001ms !important; }
 }
@@ -180,10 +315,26 @@ footer{ text-align:center; color:var(--text-faint); font-size:11px; margin-top:2
 </head>
 <body>
 <div class="wrap">
-  <header class="top">
-    <div class="title-block"><h1>Sidak's Tracker</h1></div>
-    <div class="sync-pill"><span class="sdot"></span><span>saved on this phone</span></div>
+  <header class="hero">
+    <div class="hero-text">
+      <p class="eyebrow" id="eyebrow"></p>
+      <h1>Sidak's Tracker</h1>
+      <p class="lede">A 6-day push/pull/legs hypertrophy split. Tap a box to log a set — streaks and totals update as you go.</p>
+      <div class="hero-actions">
+        <div class="sync-pill"><span class="sdot"></span><span>saved on this phone</span></div>
+        <button type="button" class="export-btn" id="exportBtn" title="Download a CSV backup of everything you've logged">&#8681; Export backup</button>
+      </div>
+    </div>
+    <div class="hero-ring" id="heroRing"></div>
   </header>
+
+  <section class="stats-grid" id="statsGrid"></section>
+
+  <div class="week-head">
+    <h2>This week</h2>
+    <span class="week-range" id="weekRange"></span>
+  </div>
+  <div class="week-strip" id="weekStrip"></div>
 
   <div class="date-nav">
     <button class="nav-arrow" id="prevBtn" aria-label="Previous day">&#8249;</button>
@@ -193,12 +344,15 @@ footer{ text-align:center; color:var(--text-faint); font-size:11px; margin-top:2
 
   <div class="panel" id="panel"></div>
 
-  <div class="chart-card">
-    <div class="chart-head">
-      <h3>Weekly progress</h3>
-      <div class="chart-stat" id="chartStat"></div>
+  <div class="consistency-card">
+    <div class="consistency-head">
+      <h3>Consistency</h3>
+      <div class="consistency-stat" id="consistencyStat"></div>
     </div>
-    <svg class="chart" id="chartSvg" viewBox="0 0 640 160"></svg>
+    <div class="weekbars-wrap">
+      <svg id="weekBars" class="weekbars" viewBox="0 0 148 126" role="img" aria-label="Daily workout completion for each of the last 8 weeks"></svg>
+    </div>
+    <div class="weekbars-caption">daily consistency, last 8 weeks<span class="today-legend"><span class="today-legend-dot"></span>today</span></div>
   </div>
 
   <footer>tap a box to log a set &middot; your history stays on this device</footer>
@@ -348,10 +502,66 @@ function startOfWeekMon(d){ const idx=planIndex(d); return addDays(d,-idx); }
 function sameDate(a,b){ return isoDate(a)===isoDate(b); }
 function reducedMotion(){ return window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches; }
 
+// Counts an element's displayed number smoothly from whatever it currently
+// shows to `toValue`, in either direction (ticking a box up or removing a
+// tick back down). Reads the "from" value straight off the DOM so callers
+// don't need to track previous state themselves.
+function animateNumber(el, toValue, opts){
+  if(!el) return;
+  const suffix = (opts && opts.suffix) || "";
+  const duration = (opts && opts.duration) || 450;
+  if(reducedMotion()){ el.textContent = toValue+suffix; return; }
+  const match = el.textContent.match(/-?\d+(\.\d+)?/);
+  const fromValue = match ? parseFloat(match[0]) : toValue;
+  if(fromValue === toValue){ el.textContent = toValue+suffix; return; }
+  if(el._animFrame) cancelAnimationFrame(el._animFrame);
+  const start = performance.now();
+  const diff = toValue - fromValue;
+  function step(now){
+    const t = Math.min(1, (now-start)/duration);
+    const eased = 1 - Math.pow(1-t, 3); // ease-out, matches the app's other motion
+    el.textContent = Math.round(fromValue + diff*eased)+suffix;
+    if(t<1){ el._animFrame = requestAnimationFrame(step); }
+    else { el._animFrame = null; el.textContent = toValue+suffix; }
+  }
+  el._animFrame = requestAnimationFrame(step);
+}
+
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 let selected = new Date(TODAY);
 let navDir = null;
-let expanded = { warmup:false, main:true, core:false, cooldown:false };
+let expanded = { warmup:false, main:false, core:false, cooldown:false };
+
+// Past days are locked (view-only) by default so old logs can't be changed
+// by accident — tapping "Edit day" unlocks that one date for this session.
+// Resets on reload; today and future days are never locked.
+let unlockedPastDays = new Set();
+function isPastDate(d){ return d < TODAY; }
+
+// Snapshot of a past day's data taken the moment it's unlocked for editing.
+// The Save button only lights up once the live data actually diverges from
+// this snapshot — so ticking a box and unticking it again leaves Save
+// disabled, exactly like nothing happened.
+let editBaselines = new Map();
+
+// Leaving a past day mid-edit (unlocked, not yet Saved/Cancelled) relocks
+// it automatically — and discards whatever was changed since "Edit day"
+// was tapped, same as if Cancel had been pressed. The day goes back to
+// exactly how it looked before you started editing, locked and greyed
+// out, with a normal "Edit day" button next time.
+function relockIfLeaving(destDate){
+  const leavingIso = isoDate(selected);
+  const enteringIso = isoDate(destDate);
+  if(leavingIso !== enteringIso && unlockedPastDays.has(leavingIso)){
+    const baseline = editBaselines.get(leavingIso);
+    if(baseline !== undefined){
+      STORE[leavingIso] = JSON.parse(baseline);
+      saveLocal();
+    }
+    unlockedPastDays.delete(leavingIso);
+    editBaselines.delete(leavingIso);
+  }
+}
 
 const LKEY = "iron-ledger-standalone-v1";
 let STORE = {};
@@ -382,6 +592,21 @@ function dayProgress(iso, day){
   return {done,total};
 }
 
+// Read-only progress lookup that never creates STORE entries — safe to call
+// across wide date ranges (streak scanning) without bloating localStorage.
+function peekProgress(iso, day){
+  if(day.type==="rest") return {done:0,total:0};
+  const data = STORE[iso] || {};
+  let done=0, total=0;
+  sectionExercises(day).forEach(({sec,idx,e})=>{
+    const sets = parseInt(e[1],10);
+    total += sets;
+    const arr = data[sec+idx] || [];
+    done += arr.filter(Boolean).length;
+  });
+  return {done,total};
+}
+
 function sectionProgress(list, sec, data){
   let done=0, total=0;
   list.forEach((e,idx)=>{
@@ -391,6 +616,227 @@ function sectionProgress(list, sec, data){
     done += arr.filter(Boolean).length;
   });
   return {done,total};
+}
+
+// Tri-state for a section's "select all" checkbox: fully on, fully off, or indeterminate.
+function secCheckState(prog){
+  const on = prog.total>0 && prog.done===prog.total;
+  const indeterminate = prog.done>0 && !on;
+  return {on, indeterminate};
+}
+
+function weekTotalsFor(weekStart){
+  let done=0, total=0;
+  for(let i=0;i<7;i++){
+    const d = addDays(weekStart,i);
+    const day = PLAN[planIndex(d)];
+    if(day.type==="rest") continue;
+    const p = dayProgress(isoDate(d), day);
+    done += p.done; total += p.total;
+  }
+  return {done,total};
+}
+
+/* ---- streaks & stats ---- */
+function dayComplete(d){
+  const day = PLAN[planIndex(d)];
+  if(day.type==="rest") return true;
+  const p = peekProgress(isoDate(d), day);
+  return p.total>0 && p.done===p.total;
+}
+
+function currentStreak(){
+  let cursor = new Date(TODAY);
+  if(!dayComplete(cursor)) cursor = addDays(cursor,-1);
+  let streak = 0;
+  while(dayComplete(cursor)){
+    streak++;
+    cursor = addDays(cursor,-1);
+  }
+  return streak;
+}
+
+function longestStreak(){
+  const keys = Object.keys(STORE).sort();
+  let earliest = TODAY;
+  if(keys.length){
+    const parsed = new Date(keys[0]+"T00:00:00");
+    if(!isNaN(parsed)) earliest = parsed;
+  }
+  const cap = addDays(TODAY,-180);
+  let start = earliest < cap ? cap : earliest;
+
+  let best = 0, cur = 0;
+  let d = new Date(start);
+  while(d <= TODAY){
+    if(dayComplete(d)){ cur++; if(cur>best) best = cur; }
+    else { cur = 0; }
+    d = addDays(d,1);
+  }
+  return best;
+}
+
+function weekPerfectDays(weekStart){
+  let count = 0;
+  for(let i=0;i<7;i++){
+    const d = addDays(weekStart,i);
+    if(d > TODAY) continue;
+    if(dayComplete(d)) count++;
+  }
+  return count;
+}
+
+function eyebrowLabel(weekStart){
+  const weekEnd = addDays(weekStart,6);
+  const m1 = weekStart.toLocaleDateString(undefined,{month:"short"}).toUpperCase();
+  const m2 = weekEnd.toLocaleDateString(undefined,{month:"short"}).toUpperCase();
+  const d1 = weekStart.getDate(), d2 = weekEnd.getDate(), year = weekEnd.getFullYear();
+  return m1===m2 ? `WEEK OF ${m1} ${d1} – ${d2}, ${year}` : `WEEK OF ${m1} ${d1} – ${m2} ${d2}, ${year}`;
+}
+
+function weekHeadRange(weekStart){
+  const weekEnd = addDays(weekStart,6);
+  const f = d => `${d.toLocaleDateString(undefined,{weekday:"short"})} ${d.getDate()}`;
+  return `${f(weekStart)} → ${f(weekEnd)} (this week)`;
+}
+
+let ringGlowUid = 0;
+function ringSVG(pct,size,stroke,color){
+  const r = (size-stroke)/2;
+  const c = 2*Math.PI*r;
+  const clamped = Math.max(0,Math.min(100,pct));
+  const offset = c*(1-clamped/100);
+  const glowOpacity = clamped>0.001 ? (0.32 + (clamped/100)*0.4) : 0; // 0 at empty -> ~0.72 near full
+  const glowWidth = stroke + 3.5;
+  const glowBlur = 2.6; // fixed on purpose: opacity+dashoffset carry the "growing" feel and those transition smoothly, unlike filter blur
+  const uid = "ringGlow" + (ringGlowUid++);
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <defs>
+      <filter id="${uid}" x="-75%" y="-75%" width="250%" height="250%">
+        <feGaussianBlur stdDeviation="${glowBlur}"></feGaussianBlur>
+      </filter>
+    </defs>
+    <circle class="ring-track" cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--surface-2)" stroke-width="${stroke}"></circle>
+    <circle class="ring-glow" cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="${glowWidth.toFixed(2)}" stroke-linecap="round" stroke-dasharray="${c.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}" transform="rotate(-90 ${size/2} ${size/2})" style="opacity:${glowOpacity.toFixed(2)}" filter="url(#${uid})"></circle>
+    <circle class="ring-progress" cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${c.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}" transform="rotate(-90 ${size/2} ${size/2})"></circle>
+  </svg>`;
+}
+
+// Updates an already-rendered ring's fill level in place (instead of
+// rebuilding the SVG) so the dashoffset/opacity CSS transitions above can
+// actually animate it, forward or backward.
+function updateRingSVG(svgEl, pct, color){
+  const clamped = Math.max(0, Math.min(100, pct));
+  const progress = svgEl.querySelector(".ring-progress");
+  const glow = svgEl.querySelector(".ring-glow");
+  if(!progress) return;
+  const r = parseFloat(progress.getAttribute("r"));
+  const c = 2*Math.PI*r;
+  const offset = c*(1-clamped/100);
+  progress.setAttribute("stroke-dashoffset", offset.toFixed(2));
+  progress.setAttribute("stroke", color);
+  if(glow){
+    const glowOpacity = clamped>0.001 ? (0.32 + (clamped/100)*0.4) : 0;
+    glow.setAttribute("stroke-dashoffset", offset.toFixed(2));
+    glow.setAttribute("stroke", color);
+    glow.style.opacity = glowOpacity.toFixed(2);
+  }
+}
+
+function statCard(num, unit, label, sub){
+  return `<div class="stat-card">
+    <div class="stat-num">${num}${unit?`<span class="stat-unit">${unit}</span>`:""}</div>
+    <div class="stat-label">${label}</div>
+    <div class="stat-sub">${sub}</div>
+  </div>`;
+}
+
+function renderHeader(){
+  const thisWeekStart = startOfWeekMon(TODAY);
+  document.getElementById("eyebrow").textContent = eyebrowLabel(thisWeekStart);
+  document.getElementById("weekRange").textContent = weekHeadRange(thisWeekStart);
+
+  const todayDay = PLAN[planIndex(TODAY)];
+  const isRest = todayDay.type==="rest";
+  let ringPct, ringColor, label, doneVal=0, totalVal=0;
+  if(isRest){
+    ringPct = 100; ringColor = "var(--rest)"; label = "day off";
+  } else {
+    const p = dayProgress(isoDate(TODAY), todayDay);
+    ringPct = p.total ? Math.round(100*p.done/p.total) : 0;
+    ringColor = "var(--accent)";
+    doneVal = p.done; totalVal = p.total;
+    label = "today";
+  }
+  const heroRingEl = document.getElementById("heroRing");
+  const existingSvg = heroRingEl.querySelector(".ring-wrap svg");
+  if(existingSvg){
+    updateRingSVG(existingSvg, ringPct, ringColor);
+    if(!isRest){
+      const doneEl = heroRingEl.querySelector(".ring-done");
+      if(doneEl) animateNumber(doneEl, doneVal);
+    }
+  } else {
+    const fracHtml = isRest ? "Rest" : `<span class="ring-done">${doneVal}</span>/${totalVal}`;
+    heroRingEl.innerHTML = `
+      <div class="ring-wrap">${ringSVG(ringPct,64,6,ringColor)}</div>
+      <div class="ring-text"><div class="ring-frac">${fracHtml}</div><div class="ring-label">${label}</div></div>
+    `;
+  }
+
+  const wk = weekTotalsFor(thisWeekStart);
+  const weekPct = wk.total ? Math.round(100*wk.done/wk.total) : 0;
+  const streak = currentStreak();
+  const best = longestStreak();
+  const perfect = weekPerfectDays(thisWeekStart);
+  const trainDays = PLAN.filter(d=>d.type!=="rest").length;
+
+  document.getElementById("statsGrid").innerHTML = [
+    statCard(best, "", "Longest streak", `current run: ${streak} day${streak===1?"":"s"}`),
+    statCard(weekPct, "%", "Weekly consistency", `${wk.done} of ${wk.total} sets`),
+    statCard(trainDays, "", "Training days", "per week, by plan"),
+    statCard(perfect, "", "Perfect days", "fully logged this week")
+  ].join("");
+}
+
+function renderWeekStrip(){
+  const stripStart = startOfWeekMon(selected);
+  let html = "";
+  for(let i=0;i<7;i++){
+    const d = addDays(stripStart,i);
+    const iso = isoDate(d);
+    const plan = PLAN[planIndex(d)];
+    const isSel = sameDate(d, selected);
+    const isToday = sameDate(d, TODAY);
+    const isFuture = d > TODAY;
+    let dotClass = "empty", dotContent = "";
+    if(plan.type==="rest"){
+      dotClass = "rest";
+    } else if(!isFuture){
+      const p = peekProgress(iso, plan);
+      const pct = p.total ? p.done/p.total : 0;
+      if(pct>=1){ dotClass = "complete"; dotContent = "&#10003;"; }
+      else if(pct>0){ dotClass = "partial"; }
+    }
+    const wd = d.toLocaleDateString(undefined,{weekday:"short"}).toUpperCase();
+    html += `<button type="button" class="week-chip${isSel?" sel":""}${isToday?" is-today":""}" data-iso="${iso}">
+      <span class="wc-day">${wd}</span>
+      <span class="wc-date">${d.getDate()}</span>
+      <span class="wc-dot ${dotClass}">${dotContent}</span>
+    </button>`;
+  }
+  const strip = document.getElementById("weekStrip");
+  strip.innerHTML = html;
+  strip.querySelectorAll(".week-chip").forEach(chip=>{
+    chip.addEventListener("click", ()=>{
+      const [y,m,dd] = chip.dataset.iso.split("-").map(Number);
+      const dest = new Date(y, m-1, dd);
+      relockIfLeaving(dest);
+      selected = dest;
+      navDir = null;
+      renderAll();
+    });
+  });
 }
 
 function renderDateNav(){
@@ -410,13 +856,15 @@ function renderDateNav(){
     <div class="focus-big">${focus}</div>
   `;
   const chip = document.getElementById("todayChip");
-  if(chip) chip.addEventListener("click", ()=>{ navDir=null; selected=new Date(TODAY); renderAll(); });
+  if(chip) chip.addEventListener("click", ()=>{ const dest=new Date(TODAY); relockIfLeaving(dest); navDir=null; selected=dest; renderAll(); });
 }
 
 function accSection(title, sec, list, iso, data){
   if(!list.length) return "";
   const prog = sectionProgress(list, sec, data);
   const isOpen = expanded[sec];
+  const cs = secCheckState(prog);
+  const ariaChecked = cs.indeterminate ? "mixed" : (cs.on ? "true" : "false");
   const rows = list.map((e,idx)=>{
     const sets = parseInt(e[1],10);
     const arr = data[sec+idx] || (data[sec+idx] = new Array(sets).fill(false));
@@ -430,10 +878,13 @@ function accSection(title, sec, list, iso, data){
   }).join("");
   return `
     <section class="acc ${sec} ${isOpen?"open":""}" data-sec="${sec}">
-      <button class="acc-head" type="button" aria-expanded="${isOpen}">
-        <span class="acc-left"><span class="dot"></span>${title}</span>
-        <span class="acc-right"><span class="acc-count">${prog.done}/${prog.total}</span><span class="chev">&#9656;</span></span>
-      </button>
+      <div class="acc-head-row">
+        <button type="button" class="sec-check${cs.on?" on":""}${cs.indeterminate?" indeterminate":""}" data-sec="${sec}" role="checkbox" aria-checked="${ariaChecked}" aria-label="Mark all ${title} sets"></button>
+        <button class="acc-head" type="button" aria-expanded="${isOpen}">
+          <span class="acc-left"><span class="dot"></span>${title}</span>
+          <span class="acc-right"><span class="acc-count"><span class="acc-done">${prog.done}</span>/${prog.total}</span><span class="chev">&#9656;</span></span>
+        </button>
+      </div>
       <div class="section-body"><div class="section-inner">${rows}</div></div>
     </section>`;
 }
@@ -453,15 +904,37 @@ function renderPanel(){
   const p = dayProgress(iso, day);
   const pct = p.total ? Math.round(100*p.done/p.total) : 0;
 
+  // Past days render locked (view-only) unless explicitly unlocked via the
+  // "Edit day" button for this session — protects old logs from accidental
+  // taps while still letting you go back and fix something on purpose.
+  const isPast = isPastDate(selected);
+  const locked = isPast && !unlockedPastDays.has(iso);
+
+  let rightControls;
+  let dirty = false;
+  if(locked){
+    rightControls = `<button class="edit-btn" id="editDayBtn">Edit day</button>`;
+  } else if(isPast){
+    // Baseline is captured the instant the day is unlocked; Save only
+    // lights up once the live data no longer matches it (a tick undone
+    // back to its original state keeps Save disabled).
+    if(!editBaselines.has(iso)) editBaselines.set(iso, JSON.stringify(data));
+    dirty = editBaselines.get(iso) !== JSON.stringify(data);
+    rightControls = `<button class="reset-btn" id="resetBtn">Reset day</button><button class="cancel-btn" id="cancelBtn">Cancel</button><button class="save-btn" id="saveBtn"${dirty?"":" disabled"}>Save</button>`;
+  } else {
+    rightControls = `<button class="reset-btn" id="resetBtn">Reset day</button>`;
+  }
+
   panel.innerHTML = `
-    <div class="panel-inner${slideClass}">
+    <div class="panel-inner${slideClass}${locked?" locked":""}">
       <div class="panel-head">
-        <div class="sub">${p.done} of ${p.total} sets logged</div>
-        <div style="display:flex;align-items:center;gap:10px;">
+        <div class="sub"><span class="sub-done">${p.done}</span> of ${p.total} sets logged${locked?'<span class="lock-tag">&#128274; past day</span>':""}</div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <div class="progress-pill"><span>${pct}%</span><div class="track"><i style="width:${pct}%"></i></div></div>
-          <button class="reset-btn" id="resetBtn">Reset day</button>
+          ${rightControls}
         </div>
       </div>
+      ${locked ? `<div class="lock-banner">&#128274; This is a past day, so it's locked to prevent accidental changes. Tap <b>Edit day</b> to make changes.</div>` : ""}
       ${accSection("Warm-up","warmup", day.warmup, iso, data)}
       ${accSection("Main lifts","main", day.main, iso, data)}
       ${accSection("Core","core", day.core, iso, data)}
@@ -481,6 +954,7 @@ function renderPanel(){
 
   panel.querySelectorAll(".setbox").forEach(box=>{
     box.addEventListener("click", ()=>{
+      if(locked) return;
       const sec = box.dataset.sec, idx = box.dataset.idx, s = +box.dataset.s;
       const turningOn = !data[sec+idx][s];
       data[sec+idx][s] = turningOn;
@@ -492,16 +966,99 @@ function renderPanel(){
         spawnSparks(box);
       }
       updateProgressUI(iso, day);
+      refreshSaveButton(iso, data);
+      renderHeader();
+      renderWeekStrip();
       renderChart();
     });
   });
 
-  document.getElementById("resetBtn").addEventListener("click", ()=>{
-    STORE[iso] = {};
-    saveLocal();
-    navDir = null;
-    renderAll();
+  panel.querySelectorAll(".sec-check").forEach(chk=>{
+    chk.addEventListener("click", ()=>{
+      if(locked) return;
+      const sec = chk.dataset.sec;
+      const list = day[sec];
+      if(!list || !list.length) return;
+      const prog = sectionProgress(list, sec, data);
+      const turningOn = !(prog.total>0 && prog.done===prog.total);
+      list.forEach((e,idx)=>{
+        const sets = parseInt(e[1],10);
+        const arr = data[sec+idx] || (data[sec+idx] = new Array(sets).fill(false));
+        for(let s=0;s<sets;s++) arr[s] = turningOn;
+      });
+      saveLocal();
+      panel.querySelectorAll(`.acc[data-sec="${sec}"] .setbox`).forEach(box=>{
+        box.classList.toggle("on", turningOn);
+      });
+      if(turningOn){
+        chk.classList.remove("pop"); void chk.offsetWidth; chk.classList.add("pop");
+        chk.addEventListener("animationend", ()=>chk.classList.remove("pop"), {once:true});
+      }
+      updateProgressUI(iso, day);
+      refreshSaveButton(iso, data);
+      renderHeader();
+      renderWeekStrip();
+      renderChart();
+    });
   });
+
+  const resetBtn = document.getElementById("resetBtn");
+  if(resetBtn){
+    resetBtn.addEventListener("click", ()=>{
+      STORE[iso] = {};
+      saveLocal();
+      navDir = null;
+      renderAll();
+    });
+  }
+
+  const editBtn = document.getElementById("editDayBtn");
+  if(editBtn){
+    editBtn.addEventListener("click", ()=>{
+      editBaselines.set(iso, JSON.stringify(dayData(iso)));
+      unlockedPastDays.add(iso);
+      navDir = null;
+      renderAll();
+    });
+  }
+
+  const saveBtn = document.getElementById("saveBtn");
+  if(saveBtn){
+    saveBtn.addEventListener("click", ()=>{
+      if(saveBtn.disabled) return;
+      unlockedPastDays.delete(iso);
+      editBaselines.delete(iso);
+      navDir = null;
+      renderAll();
+    });
+  }
+
+  const cancelBtn = document.getElementById("cancelBtn");
+  if(cancelBtn){
+    cancelBtn.addEventListener("click", ()=>{
+      // Revert to exactly how this day looked the moment "Edit day" was
+      // tapped, discarding anything changed since — then relock it.
+      const baseline = editBaselines.get(iso);
+      if(baseline !== undefined){
+        STORE[iso] = JSON.parse(baseline);
+        saveLocal();
+      }
+      unlockedPastDays.delete(iso);
+      editBaselines.delete(iso);
+      navDir = null;
+      renderAll();
+    });
+  }
+}
+
+// Called right after a checkbox toggle so Save reacts immediately, instead
+// of only re-evaluating dirty state on the next full renderPanel() pass.
+function refreshSaveButton(iso, data){
+  const saveBtn = document.getElementById("saveBtn");
+  if(!saveBtn) return;
+  const baseline = editBaselines.get(iso);
+  const dirty = baseline !== undefined && baseline !== JSON.stringify(data);
+  saveBtn.disabled = !dirty;
 }
 
 function updateProgressUI(iso, day){
@@ -509,18 +1066,27 @@ function updateProgressUI(iso, day){
   const data = dayData(iso);
   const p = dayProgress(iso, day);
   const pct = p.total ? Math.round(100*p.done/p.total) : 0;
-  const sub = panel.querySelector(".sub");
-  if(sub) sub.textContent = `${p.done} of ${p.total} sets logged`;
+  const subDone = panel.querySelector(".sub-done");
+  if(subDone) animateNumber(subDone, p.done);
   const pillSpan = panel.querySelector(".progress-pill span");
-  if(pillSpan) pillSpan.textContent = pct+"%";
+  if(pillSpan) animateNumber(pillSpan, pct, {suffix:"%"});
   const track = panel.querySelector(".progress-pill .track i");
-  if(track) track.style.width = pct+"%";
+  if(track) track.style.width = pct+"%"; // eased by the .track i CSS transition, forward or backward
   ["warmup","main","core","cooldown"].forEach(sec=>{
     const list = day[sec];
     if(!list || !list.length) return;
     const sp = sectionProgress(list, sec, data);
-    const el = panel.querySelector(`.acc[data-sec="${sec}"] .acc-count`);
-    if(el) el.textContent = `${sp.done}/${sp.total}`;
+    const accEl = panel.querySelector(`.acc[data-sec="${sec}"]`);
+    if(!accEl) return;
+    const el = accEl.querySelector(".acc-done");
+    if(el) animateNumber(el, sp.done);
+    const chk = accEl.querySelector(".sec-check");
+    if(chk){
+      const cs = secCheckState(sp);
+      chk.classList.toggle("on", cs.on);
+      chk.classList.toggle("indeterminate", cs.indeterminate);
+      chk.setAttribute("aria-checked", cs.indeterminate ? "mixed" : (cs.on ? "true" : "false"));
+    }
   });
 }
 
@@ -544,64 +1110,213 @@ function spawnSparks(el){
   }
 }
 
-function weekTotalsFor(weekStart){
-  let done=0, total=0;
-  for(let i=0;i<7;i++){
-    const d = addDays(weekStart,i);
-    const day = PLAN[planIndex(d)];
-    if(day.type==="rest") continue;
-    const p = dayProgress(isoDate(d), day);
-    done += p.done; total += p.total;
-  }
-  return {done,total};
+// Heatmap grid geometry: 8 columns (weeks, oldest -> newest) x 7 rows
+// (Monday -> Sunday). Small square cells, sized in SVG viewBox units — the
+// <svg> scales responsively via width:100% in CSS, capped by a max-width
+// on its wrapper so the grid stays compact on wide screens too.
+const HM_COLS = 8, HM_ROWS = 7;
+const HM_CELL = 13, HM_GAP_X = 4, HM_GAP_Y = 3;
+const HM_LABEL_W = 13, HM_RIGHT_PAD = 3, HM_TOP_PAD = 4, HM_BOTTOM_H = 13;
+const HM_GRID_W = HM_COLS*HM_CELL + (HM_COLS-1)*HM_GAP_X;
+const HM_GRID_H = HM_ROWS*HM_CELL + (HM_ROWS-1)*HM_GAP_Y;
+const HM_W = HM_LABEL_W + HM_GRID_W + HM_RIGHT_PAD;
+const HM_H = HM_TOP_PAD + HM_GRID_H + HM_BOTTOM_H;
+const HM_DAY_LETTERS = ["M","T","W","T","F","S","S"];
+
+// Bins a day's completed-sets fraction into a 0-4 heat level so the color
+// ramp reads as dark (skipped) -> lavender -> brighter lavender (full).
+function heatLevel(pct){
+  if(pct<=0) return 0;
+  if(pct<0.4) return 1;
+  if(pct<0.75) return 2;
+  if(pct<1) return 3;
+  return 4;
+}
+
+function heatDayLabel(d){
+  return d.toLocaleDateString(undefined, {weekday:"short", day:"numeric", month:"short"});
 }
 
 function renderChart(){
-  const svg = document.getElementById("chartSvg");
-  const nWeeks = 8;
+  // Renders "Consistency" as a compact 8-week x 7-day heatmap: each week is
+  // a column of 7 small cells (Mon top -> Sun bottom), colored by that
+  // day's fraction of sets completed. Rest days get their own neutral tone,
+  // future days sit empty/dashed. The streak/% line under the title still
+  // comes from the same currentStreak() and peekProgress() numbers used
+  // everywhere else — only the drawing changed.
+  const svg = document.getElementById("weekBars");
+  const nWeeks = HM_COLS;
   const thisWeekStart = startOfWeekMon(TODAY);
-  const weeks = [];
-  for(let i=nWeeks-1;i>=0;i--) weeks.push(addDays(thisWeekStart,-7*i));
-  const totals = weeks.map(weekTotalsFor);
-  const max = Math.max(1, ...totals.map(t=>t.total || t.done || 6));
+  const todayIso = isoDate(TODAY);
 
-  const W=640,H=160, padL=28, padR=8, padT=10, padB=26;
-  const plotW = W-padL-padR, plotH = H-padT-padB;
-  const bw = plotW/nWeeks*0.56;
-  const gap = plotW/nWeeks;
-
-  let bars="";
-  totals.forEach((t,i)=>{
-    const x = padL + i*gap + (gap-bw)/2;
-    const h = Math.max(2, (t.done/max)*plotH);
-    const y = padT + plotH - h;
-    const isCur = i===nWeeks-1;
-    bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="3" fill="${isCur?"var(--accent)":"var(--accent-2)"}" opacity="${isCur?1:0.72}"></rect>`;
-    if(t.done>0){
-      bars += `<text x="${(x+bw/2).toFixed(1)}" y="${(y-5).toFixed(1)}" text-anchor="middle" font-size="10" fill="var(--text-dim)">${t.done}</text>`;
+  const cellsData = [];
+  for(let c=0;c<nWeeks;c++){
+    const weeksAgo = nWeeks-1-c;
+    const weekStart = addDays(thisWeekStart, -7*weeksAgo);
+    for(let r=0;r<HM_ROWS;r++){
+      const d = addDays(weekStart, r);
+      const iso = isoDate(d);
+      const day = PLAN[r];
+      let state, label;
+      if(d > TODAY){
+        state = "future";
+        label = `${heatDayLabel(d)} — upcoming`;
+      } else if(day.type === "rest"){
+        state = "rest";
+        label = `${heatDayLabel(d)} — rest day`;
+      } else {
+        const p = peekProgress(iso, day);
+        const pct = p.total ? p.done/p.total : 0;
+        state = "lvl" + heatLevel(pct);
+        label = `${heatDayLabel(d)} — ${p.done}/${p.total} sets`;
+      }
+      cellsData.push({c, r, state, label, iso, isToday: iso===todayIso});
     }
-    const lbl = weeks[i].toLocaleDateString(undefined,{month:"short",day:"numeric"});
-    bars += `<text x="${(x+bw/2).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="9.5" fill="var(--text-faint)">${lbl}</text>`;
-  });
-  const gridline = `<line x1="${padL}" y1="${padT+plotH}" x2="${W-padR}" y2="${padT+plotH}" stroke="var(--border)" stroke-width="1"></line>`;
+  }
 
-  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
-  svg.innerHTML = gridline + bars;
+  const existingCells = svg.querySelectorAll(".hm-cell");
+  if(existingCells.length === nWeeks*HM_ROWS){
+    // Grid is already built — restyle each cell in place so the CSS
+    // transition on fill/opacity carries it smoothly, instead of replaying
+    // every entrance animation on each tick.
+    existingCells.forEach((rect,i)=>{
+      const cd = cellsData[i];
+      const clickable = cd.state !== "future";
+      rect.setAttribute("class", `hm-cell ${cd.state}${cd.isToday?" today":""}${clickable?" clickable":""}`);
+      const title = rect.querySelector("title");
+      if(title) title.textContent = cd.label;
+    });
+  } else {
+    let svgBody = "";
+    for(let r=0;r<HM_ROWS;r++){
+      const y = HM_TOP_PAD + r*(HM_CELL+HM_GAP_Y) + HM_CELL/2 + 2.6;
+      svgBody += `<text class="hm-daylabel" x="${(HM_LABEL_W-4).toFixed(1)}" y="${y.toFixed(1)}" text-anchor="end">${HM_DAY_LETTERS[r]}</text>`;
+    }
+    cellsData.forEach((cd,i)=>{
+      const x = HM_LABEL_W + cd.c*(HM_CELL+HM_GAP_X);
+      const y = HM_TOP_PAD + cd.r*(HM_CELL+HM_GAP_Y);
+      const delay = cd.c*35;
+      // Only rest/train days that have already happened are clickable —
+      // tapping one jumps the day panel below to that date. Future days
+      // stay inert (dashed/greyed) since there's nothing to log yet.
+      const clickable = cd.state !== "future";
+      const isoAttr = clickable ? ` data-iso="${cd.iso}"` : "";
+      svgBody += `<rect class="hm-cell ${cd.state}${cd.isToday?" today":""}${clickable?" clickable":""}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${HM_CELL}" height="${HM_CELL}" rx="3" style="animation-delay:${delay}ms"${isoAttr}><title>${cd.label}</title></rect>`;
+      if(cd.isToday){
+        // Small pinned dot marking today as the anchor/start of this view —
+        // the 8-week range itself is unchanged, this just calls out "today".
+        const cx = x + HM_CELL - 2.6, cy = y + 2.6;
+        svgBody += `<circle class="hm-today-pin" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="2.1"></circle>`;
+      }
+    });
+    const labelY = HM_TOP_PAD + HM_GRID_H + 11;
+    svgBody += `<text class="hm-label" x="${HM_LABEL_W}" y="${labelY}" text-anchor="start">${nWeeks} wks ago</text>
+      <text class="hm-label" x="${HM_W-HM_RIGHT_PAD}" y="${labelY}" text-anchor="end">this week</text>`;
 
-  const wk = totals[totals.length-1];
-  const best = Math.max(...totals.map(t=>t.done));
-  document.getElementById("chartStat").innerHTML = `this week <b>${wk.done}</b> sets &middot; best week <b>${best}</b>`;
+    svg.setAttribute("viewBox", `0 0 ${HM_W} ${HM_H}`);
+    svg.innerHTML = svgBody;
+
+    // Click listeners are wired up only on this first build, since the same
+    // <rect> nodes are reused (just restyled) on every later renderChart()
+    // call — attaching again on each render would stack duplicate handlers.
+    svg.querySelectorAll(".hm-cell.clickable").forEach(cell=>{
+      cell.addEventListener("click", ()=>{
+        const cellIso = cell.dataset.iso;
+        if(!cellIso) return;
+        const [yy,mm,dd] = cellIso.split("-").map(Number);
+        const dest = new Date(yy, mm-1, dd);
+        relockIfLeaving(dest);
+        navDir = null;
+        selected = dest;
+        renderAll();
+        const panelEl = document.getElementById("panel");
+        if(panelEl && typeof panelEl.scrollIntoView === "function"){
+          panelEl.scrollIntoView({behavior: reducedMotion() ? "auto" : "smooth", block:"center"});
+        }
+      });
+    });
+  }
+
+  // "N day streak · M% complete" — fraction of training days fully logged
+  // over the same 8-week window shown above.
+  const streak = currentStreak();
+  let trainedDays = 0, completeDays = 0;
+  for(let d = addDays(thisWeekStart, -7*(nWeeks-1)); d <= TODAY; d = addDays(d,1)){
+    const plan = PLAN[planIndex(d)];
+    if(plan.type === "rest") continue;
+    trainedDays++;
+    const p = peekProgress(isoDate(d), plan);
+    if(p.total>0 && p.done===p.total) completeDays++;
+  }
+  const completePct = trainedDays ? Math.round(100*completeDays/trainedDays) : 0;
+  const statEl = document.getElementById("consistencyStat");
+  const streakEl = statEl.querySelector(".cs-streak"), pctEl = statEl.querySelector(".cs-pct");
+  if(streakEl && pctEl){
+    animateNumber(streakEl, streak);
+    animateNumber(pctEl, completePct, {suffix:"%"});
+  } else {
+    statEl.innerHTML = `<b class="cs-streak">${streak}</b> day streak &middot; <b class="cs-pct">${completePct}%</b> complete`;
+  }
 }
 
 function renderAll(){
   renderDateNav();
   renderPanel();
+  renderHeader();
+  renderWeekStrip();
   renderChart();
   navDir = null;
 }
 
-document.getElementById("prevBtn").addEventListener("click",()=>{ navDir="prev"; selected = addDays(selected,-1); renderAll(); });
-document.getElementById("nextBtn").addEventListener("click",()=>{ navDir="next"; selected = addDays(selected,1); renderAll(); });
+/* ---- backup export ----
+   Only real, persisted data lives here — localStorage on one device, no
+   account, no server. "Export backup" turns the whole history into a CSV
+   (one row per logged set) so it's never more than a download away from
+   being safe somewhere else: a Drive folder, an email to yourself, etc.
+   It always exports everything ever logged, not just this week or month —
+   a backup that quietly drops older data isn't much of a backup. */
+function csvEscape(val){
+  const s = String(val);
+  return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+}
+
+function exportBackupCSV(){
+  const header = ["date","weekday","focus","section","exercise","target_sets","target_reps","set_number","completed"];
+  const lines = [header.map(csvEscape).join(",")];
+  Object.keys(STORE).sort().forEach(iso=>{
+    const [y,m,dd] = iso.split("-").map(Number);
+    const d = new Date(y, m-1, dd);
+    const day = PLAN[planIndex(d)];
+    if(!day || day.type === "rest") return;
+    const data = STORE[iso] || {};
+    sectionExercises(day).forEach(({sec, idx, e})=>{
+      const sets = parseInt(e[1],10);
+      const arr = data[sec+idx] || [];
+      for(let s=0; s<sets; s++){
+        lines.push([iso, day.name, day.focus, sec, e[0], sets, e[2], s+1, arr[s] ? "yes" : "no"].map(csvEscape).join(","));
+      }
+    });
+  });
+  return lines.join("\r\n");
+}
+
+function downloadTextFile(filename, text, mime){
+  const blob = new Blob(["\ufeff"+text], {type: mime || "text/plain;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+
+document.getElementById("exportBtn").addEventListener("click", ()=>{
+  downloadTextFile(`sidaks-tracker-backup-${isoDate(TODAY)}.csv`, exportBackupCSV(), "text/csv;charset=utf-8;");
+});
+
+document.getElementById("prevBtn").addEventListener("click",()=>{ const dest=addDays(selected,-1); relockIfLeaving(dest); navDir="prev"; selected=dest; renderAll(); });
+document.getElementById("nextBtn").addEventListener("click",()=>{ const dest=addDays(selected,1); relockIfLeaving(dest); navDir="next"; selected=dest; renderAll(); });
 
 renderAll();
 

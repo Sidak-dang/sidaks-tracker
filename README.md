@@ -6,6 +6,12 @@ No account, no backend, no Claude runtime: it's a plain static site. Your logged
 sets are saved in the browser's `localStorage` on whatever device opens it, and
 nowhere else.
 
+The top of the page shows a small stat header: a progress ring for today, plus
+longest streak / weekly consistency / training days / perfect-days-this-week
+cards, and a 7-day week strip you can tap to jump to any day. All of it is
+computed live from the same `localStorage` data as the daily checklist below —
+nothing new to sync or configure.
+
 ## Files
 
 - `index.html` — the whole app.
