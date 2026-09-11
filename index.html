@@ -316,6 +316,7 @@ body{
   font-family:'Fraunces',serif; font-weight:700; font-size:20px; border-radius:10px; padding:8px 10px;
 }
 .weight-input-row input:focus{ outline:none; border-color:var(--accent); }
+.weight-input-row input::placeholder{ font-family:'Work Sans',sans-serif; font-weight:500; font-size:14px; color:var(--text-faint); }
 .weight-input-row .tracker-unit{ font-size:13px; color:var(--text-dim); }
 .tracker-manual-row{ display:flex; align-items:center; gap:8px; margin-top:10px; }
 .tracker-manual-row input{
@@ -425,7 +426,7 @@ footer{ text-align:center; color:var(--text-faint); font-size:11px; margin-top:2
         <span class="tracker-sub" id="weightTrend"></span>
       </div>
       <div class="weight-input-row">
-        <input type="number" inputmode="decimal" step="0.1" min="0" id="weightInput" placeholder="not logged">
+        <input type="number" inputmode="decimal" step="0.1" min="0" id="weightInput" placeholder="—">
         <span class="tracker-unit">kg</span>
         <button type="button" class="save-btn" id="weightSaveBtn">Log</button>
         <button type="button" class="cancel-btn" id="weightClearBtn">Clear</button>
