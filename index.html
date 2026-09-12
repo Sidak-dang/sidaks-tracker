@@ -70,7 +70,15 @@
   background:var(--accent); color:#0a0912; font-weight:600; font-size:15px; cursor:pointer;
 }
 #authGate button:disabled{ opacity:0.6; cursor:default; }
+#authGate .forgot-link{
+  display:block; width:100%; margin:10px 0 0; padding:0; background:none; border:none;
+  color:var(--text-faint); font-family:inherit; font-size:12px; text-align:right;
+  text-decoration:underline; text-underline-offset:2px; cursor:pointer;
+}
+#authGate .forgot-link:hover{ color:var(--text-dim); }
+#authGate .forgot-link:disabled{ opacity:0.6; cursor:default; text-decoration:none; }
 #authGate .authError{ color:var(--bad); font-size:13px; margin-top:12px; min-height:16px; }
+#authGate .authError.ok{ color:var(--good); }
 
 /* ---- password show/hide toggle ---- */
 .pw-field{ position:relative; }
@@ -514,6 +522,7 @@ footer{ text-align:center; color:var(--text-faint); font-size:11px; margin-top:2
         <input id="authPass" type="password" autocomplete="current-password" required>
         <button type="button" class="pw-toggle" data-target="authPass" aria-label="Show password"></button>
       </div>
+      <button type="button" class="forgot-link" id="forgotPassBtn">Forgot password?</button>
       <button type="submit" id="authSubmit">Sign in</button>
       <div class="authError" id="authError"></div>
     </form>
@@ -1077,7 +1086,10 @@ function weekTotalsFor(weekStart){
     const d = addDays(weekStart,i);
     const day = PLAN[planIndex(d)];
     if(day.type==="rest") continue;
-    const p = dayProgress(isoDate(d), day);
+    // Read-only: this loop can touch future days still inside "this week",
+    // and dayProgress() would silently create a real STORE[iso] entry for
+    // each one just from rendering the header. peekProgress() never writes.
+    const p = peekProgress(isoDate(d), day);
     done += p.done; total += p.total;
   }
   return {done,total};
@@ -2307,6 +2319,7 @@ const gateEmail  = document.getElementById("authEmail");
 const gatePass   = document.getElementById("authPass");
 const gateError  = document.getElementById("authError");
 const gateBtn    = document.getElementById("authSubmit");
+const forgotBtn  = document.getElementById("forgotPassBtn");
 const pill       = document.getElementById("syncPill");
 const pillDot    = document.getElementById("syncPillDot");
 const pillText   = document.getElementById("syncPillText");
@@ -2362,6 +2375,7 @@ function resetPwVisibility(container){
 function friendlyAuthError(err){
   const code = (err && err.code) || "";
   if (code.includes("wrong-password") || code.includes("invalid-credential")) return "That password doesn't match your account.";
+  if (code.includes("user-not-found")) return "No account found for that email.";
   if (code.includes("too-many-requests")) return "Too many attempts — wait a bit and try again.";
   if (code.includes("requires-recent-login")) return "Please re-enter your current password and try again.";
   if (code.includes("email-already-in-use")) return "That email is already in use.";
@@ -2403,7 +2417,7 @@ if (FIREBASE_CONFIG.apiKey === "REPLACE_ME") {
       ]);
       const {
         getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut,
-        setPersistence, browserLocalPersistence,
+        setPersistence, browserLocalPersistence, sendPasswordResetEmail,
         EmailAuthProvider, reauthenticateWithCredential, updatePassword, verifyBeforeUpdateEmail
       } = authMod;
       const { getFirestore, doc, getDoc, setDoc } = fsMod;
@@ -2482,11 +2496,14 @@ if (FIREBASE_CONFIG.apiKey === "REPLACE_ME") {
           appRoot.style.visibility = "hidden";
           gateForm.reset();
           resetPwVisibility(gateForm);
+          gateError.className = "authError";
+          gateError.textContent = "";
         }
       });
 
       gateForm.addEventListener("submit", async (e) => {
         e.preventDefault();
+        gateError.className = "authError";
         gateError.textContent = "";
         gateBtn.disabled = true;
         gateBtn.textContent = "Signing in…";
@@ -2500,10 +2517,42 @@ if (FIREBASE_CONFIG.apiKey === "REPLACE_ME") {
         }
       });
 
-      pill.addEventListener("click", () => {
+      forgotBtn.addEventListener("click", async () => {
+        const email = gateEmail.value.trim();
+        gateError.className = "authError";
+        if (!email) {
+          gateError.textContent = "Enter your email above first, then tap this again.";
+          gateEmail.focus();
+          return;
+        }
+        gateError.textContent = "";
+        forgotBtn.disabled = true;
+        const original = forgotBtn.textContent;
+        forgotBtn.textContent = "Sending…";
+        try {
+          await sendPasswordResetEmail(auth, email);
+          gateError.className = "authError ok";
+          gateError.textContent = `Check ${email} for a password reset link.`;
+        } catch (err) {
+          gateError.className = "authError";
+          gateError.textContent = friendlyAuthError(err);
+        } finally {
+          forgotBtn.disabled = false;
+          forgotBtn.textContent = original;
+        }
+      });
+
+      // Guard against bubbling: accountPop lives INSIDE pill in the DOM, so a
+      // click on "Sign out" or "Manage account" (which close the popover
+      // themselves) would otherwise bubble up to this same listener and
+      // immediately toggle it back open. Ignore any click/keydown that
+      // originated from within the popover itself.
+      pill.addEventListener("click", (e) => {
+        if (accountPop.contains(e.target)) return;
         accountPop.style.display = accountPop.style.display === "block" ? "none" : "block";
       });
       pill.addEventListener("keydown", (e) => {
+        if (accountPop.contains(e.target)) return;
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           accountPop.style.display = accountPop.style.display === "block" ? "none" : "block";

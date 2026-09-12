@@ -56,6 +56,10 @@ project by hand in the console, so no stranger can self-register.
 8. Deploy/redeploy as usual (see below) and open the app — you'll land on a
    sign-in screen. Sign in with the account from step 5.
 
+If you forget your password, the sign-in screen has a "Forgot password?"
+link — enter your email above it first, then tap it to have Firebase send a
+reset link to that address.
+
 If you skip this setup, the app detects the unfilled `REPLACE_ME` config and
 runs exactly as before — no login gate, local-only storage, no errors.
 
