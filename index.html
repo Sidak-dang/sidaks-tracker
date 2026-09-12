@@ -426,7 +426,7 @@ body{
 .weight-chart-wrap{ margin-top:14px; }
 .weight-chart-svg{ width:100%; height:auto; display:block; overflow:visible; }
 .wc-line{ stroke:var(--accent-2); stroke-width:2; fill:none; }
-.wchart-dot{ fill:var(--accent-2); filter:drop-shadow(0 0 3px var(--accent-2-glow)); }
+.wchart-dot{ fill:var(--accent-2); filter:drop-shadow(0 0 3px var(--accent-2-glow)); cursor:pointer; }
 .wc-gridline{ stroke:var(--border); stroke-width:1; }
 .wc-axis-line{ stroke:var(--text-faint); stroke-width:1; }
 .wc-axis-label{ font-family:'JetBrains Mono',monospace; font-size:7.5px; fill:var(--text-faint); }
@@ -1817,15 +1817,35 @@ function renderWeightChart(){
   let plot = "";
   if(recent.length === 1){
     const only = recent[0];
-    plot = `<circle class="wchart-dot" cx="${toX(0).toFixed(1)}" cy="${toY(only.w).toFixed(1)}" r="3.4"><title>${only.iso}: ${only.w} kg</title></circle>`;
+    plot = `<circle class="wchart-dot" data-iso="${only.iso}" cx="${toX(0).toFixed(1)}" cy="${toY(only.w).toFixed(1)}" r="3.4"><title>${only.iso}: ${only.w} kg — tap to go to this date</title></circle>`;
   } else {
     const pts = xs.map((x,i)=>[toX(x), toY(ys[i])]);
     const path = pts.map((p,i)=>(i===0?"M":"L")+p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ");
-    const dots = pts.map((p,i)=>`<circle class="wchart-dot" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.6"><title>${recent[i].iso}: ${recent[i].w} kg</title></circle>`).join("");
+    const dots = pts.map((p,i)=>`<circle class="wchart-dot" data-iso="${recent[i].iso}" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.6"><title>${recent[i].iso}: ${recent[i].w} kg — tap to go to this date</title></circle>`).join("");
     plot = `<path class="wc-line" d="${path}"></path>${dots}`;
   }
 
   wrap.innerHTML = `<svg class="weight-chart-svg" viewBox="0 0 ${WC_W} ${WC_H}" role="img" aria-label="Weight over time, in kilograms, by date">${yGrid}${xTicks}${axisLines}${yUnitLabel}${plot}</svg>`;
+
+  // Tapping a dot jumps the day panel above to that date — same navigation
+  // used by the week strip and the consistency heatmap, so a mid-edit past
+  // day gets relocked (and any unsaved change discarded) exactly the same
+  // way it would from any other nav entry point.
+  wrap.querySelectorAll(".wchart-dot").forEach(dot=>{
+    dot.addEventListener("click", ()=>{
+      const [yy,mm,dd] = dot.dataset.iso.split("-").map(Number);
+      const dest = new Date(yy, mm-1, dd);
+      relockIfLeaving(dest);
+      relockBioIfLeaving(dest);
+      navDir = null;
+      selected = dest;
+      renderAll();
+      const panelEl = document.getElementById("panel");
+      if(panelEl && typeof panelEl.scrollIntoView === "function"){
+        panelEl.scrollIntoView({behavior: reducedMotion() ? "auto" : "smooth", block:"center"});
+      }
+    });
+  });
 
   if(entries.length === 1){
     labelEl.textContent = `First log · ${recent[0].w} kg — keep logging to see a trend.`;
