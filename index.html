@@ -62,14 +62,15 @@
 #authGate button:disabled{ opacity:0.6; cursor:default; }
 #authGate .authError{ color:var(--bad); font-size:13px; margin-top:12px; min-height:16px; }
 
-/* ---- sync pill states + account popover ---- */
-.sync-pill{ cursor:pointer; position:relative; user-select:none; }
-.sync-pill .sdot{ transition:background .2s; }
+/* ---- profile button + account popover ---- */
+.profile-btn{ cursor:pointer; position:relative; user-select:none; }
 #accountPop{
   display:none; position:absolute; top:calc(100% + 8px); left:0; z-index:50;
   background:var(--surface); border:1px solid var(--border); border-radius:12px;
   padding:14px; min-width:200px; box-shadow:var(--shadow);
 }
+#accountPop .accStatus{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-dim); margin-bottom:10px; }
+#accountPop .accStatus .sdot{ width:6px; height:6px; border-radius:50%; background:var(--good); flex-shrink:0; transition:background .2s; }
 #accountPop .accEmail{ font-size:13px; color:var(--text-dim); word-break:break-all; margin-bottom:10px; }
 #accountPop button{
   width:100%; padding:8px; border-radius:8px; border:1px solid var(--border);
@@ -134,14 +135,16 @@ body{
 .eyebrow{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--text-faint); margin:0 0 10px; }
 .hero-text h1{ font-family:'Fraunces',serif; font-weight:600; font-size:clamp(30px,8vw,42px); line-height:1.05; margin:0 0 10px; color:var(--text); letter-spacing:-0.01em; }
 .lede{ font-size:14px; line-height:1.6; color:var(--text-dim); margin:0 0 14px; max-width:44ch; }
-.hero .sync-pill{ margin-top:2px; }
+.hero .profile-btn{ margin-top:2px; }
 
-.sync-pill{
-  display:inline-flex; align-items:center; gap:6px;
-  font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--good);
-  border:1px solid var(--border); border-radius:20px; padding:4px 9px 4px 7px; white-space:nowrap;
+.profile-btn{
+  width:36px; height:36px; border-radius:50%; flex-shrink:0;
+  display:inline-flex; align-items:center; justify-content:center;
+  border:1px solid var(--border); background:var(--surface-2);
+  transition:border-color .2s, box-shadow .2s;
 }
-.sync-pill .sdot{width:6px;height:6px;border-radius:50%;background:var(--good);}
+.profile-btn:hover, .profile-btn:focus-visible{ border-color:var(--accent); outline:none; }
+.profile-btn svg{ display:block; }
 
 .hero-ring{ flex-shrink:0; display:flex; align-items:center; gap:12px; padding-top:6px; }
 .ring-wrap{ position:relative; width:64px; height:64px; flex-shrink:0; }
@@ -532,9 +535,17 @@ footer{ text-align:center; color:var(--text-faint); font-size:11px; margin-top:2
       <h1>Sidak's Tracker</h1>
       <p class="lede">A 6-day push/pull/legs hypertrophy split. Tap a box to log a set — streaks and totals update as you go.</p>
       <div class="hero-actions">
-        <div class="sync-pill" id="syncPill">
-          <span class="sdot" id="syncPillDot"></span><span id="syncPillText">saved on this phone</span>
+        <div class="profile-btn" id="syncPill" role="button" tabindex="0" aria-haspopup="true" aria-label="Account">
+          <svg viewBox="0 0 40 40" width="22" height="22" aria-hidden="true">
+            <defs><clipPath id="avatarClip"><circle cx="20" cy="20" r="20"/></clipPath></defs>
+            <g clip-path="url(#avatarClip)">
+              <circle cx="20" cy="20" r="20" fill="var(--surface-2)"/>
+              <circle cx="20" cy="15" r="7" fill="var(--text-dim)"/>
+              <circle cx="20" cy="40" r="15" fill="var(--text-dim)"/>
+            </g>
+          </svg>
           <div id="accountPop">
+            <div class="accStatus"><span class="sdot" id="syncPillDot"></span><span id="syncPillText">saved on this phone</span></div>
             <div class="accEmail" id="accEmail"></div>
             <button type="button" id="manageAccountBtn">Manage account</button>
             <button type="button" id="signOutBtn">Sign out</button>
@@ -2415,6 +2426,12 @@ if (FIREBASE_CONFIG.apiKey === "REPLACE_ME") {
 
       pill.addEventListener("click", () => {
         accountPop.style.display = accountPop.style.display === "block" ? "none" : "block";
+      });
+      pill.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          accountPop.style.display = accountPop.style.display === "block" ? "none" : "block";
+        }
       });
       document.addEventListener("click", (e) => {
         if (!pill.contains(e.target)) accountPop.style.display = "none";
