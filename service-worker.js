@@ -1,4 +1,4 @@
-const CACHE = "iron-ledger-v8";
+const CACHE = "iron-ledger-v9";
 const ASSETS = ["./", "./index.html", "./manifest.json", "./icon.svg"];
 
 self.addEventListener("install", (e) => {
@@ -15,21 +15,22 @@ self.addEventListener("activate", (e) => {
   self.clients.claim();
 });
 
+// Network-first, cache-fallback. Every GET tries the network first and
+// refreshes the cache on success, so an edit to index.html shows up on the
+// very next page load with no manual cache-version bump required. The
+// cache only kicks in when there's no connectivity (offline use at the
+// gym) — it serves whatever was last fetched successfully.
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
   const url = new URL(e.request.url);
   if (url.origin !== self.location.origin) return; // let font requests hit the network normally
   e.respondWith(
-    caches.match(e.request).then(
-      (cached) =>
-        cached ||
-        fetch(e.request)
-          .then((res) => {
-            const copy = res.clone();
-            caches.open(CACHE).then((c) => c.put(e.request, copy));
-            return res;
-          })
-          .catch(() => cached)
-    )
+    fetch(e.request)
+      .then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put(e.request, copy));
+        return res;
+      })
+      .catch(() => caches.match(e.request))
   );
 });
