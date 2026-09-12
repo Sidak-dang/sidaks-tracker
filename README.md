@@ -36,6 +36,10 @@ npx serve .
 ## Edit the plan
 
 The whole week lives in the `PLAN` array at the top of the `<script>` block in
-`index.html` — each day has `warmup`, `main`, `core`, and `cooldown` arrays of
-`[exercise name, sets, reps]`. Edit it directly and redeploy (or just refresh
-if you're running it locally) to change the program.
+`index.html` — each day has `warmup`, `main`, `core`, and `cooldown` arrays.
+`main` and `core` rows are `[exercise name, sets, reps, RPE]`; `warmup` and
+`cooldown` rows are `[exercise name, sets, reps]` (no RPE, since mobility/
+stretch work isn't logged at an intensity). The 4th field is optional —
+`accSection()` in `index.html` only renders it when present, so a row without
+one just shows `sets×reps` as before. Edit the array directly and redeploy
+(or just refresh if you're running it locally) to change the program.

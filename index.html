@@ -447,135 +447,176 @@ footer{ text-align:center; color:var(--text-faint); font-size:11px; margin-top:2
 </div>
 
 <script>
+// Main/core exercise rows are [name, sets, reps, RPE]; warmup/cooldown rows
+// stay [name, sets, reps] since the source plan gives no RPE for mobility
+// work. accSection() renders the 4th field only when present.
 const PLAN = [
-  { name:"Monday", focus:"Push A · Chest", type:"train",
+  { name:"Monday", focus:"Push · Chest, Shoulders, Triceps", type:"train",
     warmup:[
-      ["Stationary bike or treadmill incline walk","1","5 min"],
-      ["Arm circles, forward then backward","1","15/direction"],
-      ["Band or towel pull-apart, chest height","2","15"],
-      ["Bodyweight push-ups, controlled tempo","2","12"],
-      ["Empty-barbell bench press, warm-up set","1","15"]
+      ["Light cardio (treadmill/bike/rope)","1","5 min"],
+      ["Arm circles","1","20/direction"],
+      ["Shoulder dislocates with a towel or stick","1","10"],
+      ["Doorway chest stretch, dynamic pulses","1","30 sec"],
+      ["Thoracic spine rotations, on all fours","1","10/side"],
+      ["Bench press warm-up sets, bar only then 50%","2","building up"]
     ],
     main:[
-      ["Flat Barbell Bench Press, medium grip","4","6–10"],
-      ["Incline Dumbbell Press, neutral grip","3","8–12"],
-      ["Pec-Deck Machine Fly (or Cable Crossover)","3","12–15"],
-      ["Seated Dumbbell Shoulder Press","3","8–12"],
-      ["Cable Rope Triceps Pushdown, elbows pinned","3","10–15"]
+      ["Barbell Bench Press","4","6–8","RPE 7–8"],
+      ["Incline Dumbbell Press","3","8–10","RPE 8"],
+      ["Standing Dumbbell Shoulder Press","3","8–10","RPE 8"],
+      ["Flat Dumbbell Fly","3","12–15","RPE 8–9"],
+      ["Dumbbell Lateral Raise","3","12–15","RPE 9"],
+      ["Bench/Bar Dips (or Close-Grip Bench)","3","10–12","RPE 8"],
+      ["Overhead Dumbbell Triceps Extension","2","12–15","RPE 9"]
     ],
-    core:[["Hanging Knee Raise","3","12–15"]],
+    core:[
+      ["Plank","3","30–45 sec","RPE 8"],
+      ["Hanging Knee/Leg Raise (or lying leg raise)","3","12","RPE 8"],
+      ["Russian Twist","3","20 (10/side)","RPE 8"]
+    ],
     cooldown:[
-      ["Doorway chest stretch","2","30 sec"],
-      ["Overhead triceps stretch, each arm","2","30 sec/side"]
+      ["Chest doorway stretch","1","30 sec/side"],
+      ["Overhead triceps stretch","1","30 sec/side"],
+      ["Cross-body shoulder stretch","1","30 sec/side"],
+      ["Child's pose","1","45 sec"]
     ]
   },
-  { name:"Tuesday", focus:"Pull A · Back width", type:"train",
+  { name:"Tuesday", focus:"Pull · Back, Biceps", type:"train",
     warmup:[
-      ["Stationary bike or rowing machine, easy pace","1","5 min"],
-      ["Arm swings across chest","1","15"],
-      ["Band pull-apart, chest height","2","15"],
-      ["Scapular pull-ups, hang and shrug","2","10"],
-      ["Lat pulldown, wide grip, warm-up weight","1","12"]
+      ["Light cardio","1","5 min"],
+      ["Band or towel pull-aparts","1","15"],
+      ["Cat-Cow stretch","1","10"],
+      ["Scapular pull-ups on the bar","1","10"],
+      ["Thoracic rotations","1","10/side"]
     ],
     main:[
-      ["Wide-Grip Lat Pulldown (or Pull-Ups)","4","6–10"],
-      ["Seated Cable Row, close neutral grip","3","10–12"],
-      ["Barbell Bent-Over Row, overhand medium grip","3","8–12"],
-      ["Face Pull, rope, high pulley","3","15–20"],
-      ["EZ-Bar Curl, shoulder-width grip","3","8–12"]
+      ["Pull-Ups (or Lat Pulldown)","4","8–10","RPE 8"],
+      ["Barbell Bent-Over Row","4","6–8","RPE 7–8"],
+      ["Seated Cable Row","3","10–12","RPE 8"],
+      ["Single-Arm Dumbbell Row","3","10–12","RPE 8"],
+      ["Cable or Band Face Pull","3","15","RPE 7–8"],
+      ["Barbell or EZ-Bar Curl","3","10–12","RPE 8–9"],
+      ["Hammer Curl","2","12–15","RPE 9"]
     ],
-    core:[["Cable Woodchopper, high-to-low, single handle","3","12/side"]],
+    core:[],
     cooldown:[
-      ["Lat stretch, side reach","2","30 sec/side"],
-      ["Biceps wall stretch","2","30 sec/side"]
+      ["Doorway lat stretch","1","30 sec/side"],
+      ["Cat-Cow","1","8"],
+      ["Cross-body rear delt stretch","1","30 sec/side"],
+      ["Biceps wall stretch","1","30 sec/side"]
     ]
   },
-  { name:"Wednesday", focus:"Legs A · Quads + joints", type:"train",
+  { name:"Wednesday", focus:"Legs · Quads, Hamstrings, Glutes, Calves", type:"train",
     warmup:[
-      ["Stationary bike","1","5 min"],
-      ["Bodyweight squats","2","15"],
-      ["Leg swings, front-to-back","1","12/side"],
-      ["Walking lunges, bodyweight","1","10/leg"],
-      ["Ankle circles","1","10/direction"]
+      ["Light cardio","1","5 min"],
+      ["Leg swings, front-to-back and side-to-side","1","10/leg each direction"],
+      ["Bodyweight squats","1","15"],
+      ["Walking lunges, no weight","1","8/leg"],
+      ["Ankle circles","1","10/side"],
+      ["Deep squat hold, hip mobility","1","30–45 sec"]
     ],
     main:[
-      ["Barbell Back Squat, high-bar, shoulder-width","4","6–10"],
-      ["Leg Press, feet shoulder-width","3","10–12"],
-      ["Walking Lunge, dumbbells at sides","3","12/leg"],
-      ["Leg Extension Machine","3","12–15"],
-      ["Standing Calf Raise Machine","4","12–15"]
+      ["Back Squat","4","6–8","RPE 7–8"],
+      ["Barbell Hip Thrust","3","10–12","RPE 8"],
+      ["Dumbbell Walking Lunge","3","10/leg","RPE 8"],
+      ["Goblet Squat","3","12–15","RPE 8–9"],
+      ["Standing Calf Raise","4","15–20","RPE 9"]
     ],
-    core:[["Cable Crunch, kneeling, high pulley","3","15"]],
+    core:[
+      ["Plank","3","30–45 sec","RPE 8"],
+      ["Bicycle Crunch","3","20 (10/side)","RPE 8"],
+      ["Lying Leg Raise","3","12","RPE 8"]
+    ],
     cooldown:[
-      ["Deep bodyweight squat hold","3","30 sec"],
-      ["Couch stretch, quad/hip flexor","2","30 sec/side"],
-      ["Standing hamstring stretch","2","30 sec/side"]
+      ["Standing quad stretch","1","30 sec/side"],
+      ["Seated hamstring stretch","1","30 sec/side"],
+      ["Calf stretch against wall","1","30 sec/side"],
+      ["Pigeon or seated glute stretch","1","30 sec/side"],
+      ["Hip flexor stretch, kneeling","1","30 sec/side"]
     ]
   },
-  { name:"Thursday", focus:"Push B · Shoulders", type:"train",
+  { name:"Thursday", focus:"Push (Variation) · Shoulders, Chest, Triceps", type:"train",
     warmup:[
-      ["Rowing machine or bike, easy pace","1","5 min"],
-      ["Arm circles","1","15/direction"],
-      ["Towel pass-through or band dislocate","2","10"],
-      ["Wall slides, back flat against wall","2","12"],
-      ["Push-ups, moderate pace","1","10"]
+      ["Light cardio (treadmill/bike/rope)","1","5 min"],
+      ["Arm circles","1","20/direction"],
+      ["Shoulder dislocates with a towel or stick","1","10"],
+      ["Doorway chest stretch, dynamic pulses","1","30 sec"],
+      ["Thoracic spine rotations, on all fours","1","10/side"],
+      ["Overhead Barbell Press warm-up sets, bar only then 50%","2","building up"]
     ],
     main:[
-      ["Seated Barbell Overhead Press","4","6–10"],
-      ["Incline Barbell or Dumbbell Bench Press","3","8–12"],
-      ["Dumbbell Lateral Raise, standing","3","12–15"],
-      ["Parallel-Bar or Bench Dips, torso upright","3","8–12"],
-      ["EZ-Bar Skull Crusher, lying flat bench","3","10–12"]
+      ["Overhead Barbell Press","4","6–8","RPE 7–8"],
+      ["Flat Dumbbell Press","3","8–10","RPE 8"],
+      ["Incline Barbell Press","3","8–10","RPE 8"],
+      ["Dumbbell Lateral Raise","3","12–15","RPE 9"],
+      ["Bent-Over Dumbbell Rear Delt Fly","3","12–15","RPE 8–9"],
+      ["Close-Grip Bench Press","3","8–10","RPE 8"],
+      ["Bench/Bar Dips","2","12–15","RPE 9"]
     ],
-    core:[["Forearm Plank","3","45–60 sec"]],
+    core:[],
     cooldown:[
-      ["Cross-body shoulder stretch","2","30 sec/side"],
-      ["Doorway chest stretch","2","30 sec"]
+      ["Chest doorway stretch","1","30 sec/side"],
+      ["Overhead triceps stretch","1","30 sec/side"],
+      ["Cross-body shoulder stretch","1","30 sec/side"],
+      ["Child's pose","1","45 sec"]
     ]
   },
-  { name:"Friday", focus:"Pull B · Back thickness + arms", type:"train",
+  { name:"Friday", focus:"Pull (Variation) · Back Thickness, Arms", type:"train",
     warmup:[
-      ["Stationary bike or rowing machine, easy pace","1","5 min"],
-      ["Band pull-apart","2","15"],
-      ["Cat-Cow","1","10"],
-      ["Empty-barbell Romanian deadlift, light","1","10"],
-      ["Scapular pulls on bar","1","10"]
+      ["Light cardio","1","5 min"],
+      ["Band or towel pull-aparts","1","15"],
+      ["Cat-Cow stretch","1","10"],
+      ["Scapular pull-ups on the bar","1","10"],
+      ["Thoracic rotations","1","10/side"]
     ],
     main:[
-      ["Conventional Deadlift, double-overhand grip","4","5–8"],
-      ["T-Bar Row, landmine/barbell-in-corner, close grip","3","8–12"],
-      ["Lat Pulldown, close underhand grip","3","10–12"],
-      ["Barbell Shrug, overhand grip","3","12–15"],
-      ["Incline Dumbbell Curl","3","10–12"]
+      ["Barbell Row, Pendlay-style","4","6–8","RPE 7–8"],
+      ["Weighted or Assisted Pull-Ups","3","8–10","RPE 8"],
+      ["Chest-Supported Dumbbell Row, face-down on incline bench","3","10–12","RPE 8"],
+      ["Single-Arm Lat Pulldown","3","10–12","RPE 8"],
+      ["Dumbbell Shrugs","3","12–15","RPE 8–9"],
+      ["Incline Dumbbell Curl","3","10–12","RPE 8–9"],
+      ["Cable or Barbell Curl","2","12–15","RPE 9"]
     ],
-    core:[["Hanging Knee Raise","3","15"]],
+    core:[
+      ["Side Plank","3","20–30 sec/side","RPE 8"],
+      ["Hanging Knee Raise","3","12","RPE 8"],
+      ["Mountain Climbers","3","20 (10/side)","RPE 8"]
+    ],
     cooldown:[
-      ["Child's Pose","1","45 sec"],
-      ["Forearm & wrist stretch","2","20 sec/side"]
+      ["Doorway lat stretch","1","30 sec/side"],
+      ["Cat-Cow","1","8"],
+      ["Cross-body rear delt stretch","1","30 sec/side"],
+      ["Biceps wall stretch","1","30 sec/side"]
     ]
   },
-  { name:"Saturday", focus:"Legs B · Hams/glutes + mobility", type:"train",
+  { name:"Saturday", focus:"Legs (Variation) · Unilateral, Glutes", type:"train",
     warmup:[
-      ["Stationary bike","1","5 min"],
-      ["Glute bridges, bodyweight","2","15"],
-      ["Leg swings, side-to-side","1","12/side"],
-      ["Bodyweight hip hinge (RDL pattern)","1","10"],
-      ["Hip circles","1","10/direction"]
+      ["Light cardio","1","5 min"],
+      ["Leg swings, front-to-back and side-to-side","1","10/leg each direction"],
+      ["Bodyweight squats","1","15"],
+      ["Walking lunges, no weight","1","8/leg"],
+      ["Ankle circles","1","10/side"],
+      ["Deep squat hold, hip mobility","1","30–45 sec"]
     ],
     main:[
-      ["Romanian Deadlift, barbell, overhand grip","4","8–10"],
-      ["Bulgarian Split Squat, dumbbells at sides","3","10–12/leg"],
-      ["Lying or Seated Leg Curl Machine","3","12–15"],
-      ["Leg Press, feet high and wide","3","10–12"],
-      ["Seated Calf Raise Machine","4","15–20"]
+      ["Front Squat","4","8–10","RPE 7–8"],
+      ["Bulgarian Split Squat","3","10/leg","RPE 8"],
+      ["Single-Leg Glute Bridge","3","12/leg","RPE 8–9"],
+      ["Dumbbell Step-Ups","3","10/leg","RPE 8"],
+      ["Seated Calf Raise, dumbbell on knee","4","15–20","RPE 9"]
     ],
-    core:[["Side Plank, each side","3","30 sec/side"]],
+    core:[
+      ["Plank with Shoulder Taps","3","20 taps","RPE 8"],
+      ["Russian Twist","3","20","RPE 8"],
+      ["Flutter Kicks","3","30 sec","RPE 8"]
+    ],
     cooldown:[
-      ["World's Greatest Stretch","2","6/side"],
-      ["90/90 Hip Stretch","2","45 sec/side"],
-      ["Pigeon Pose","2","45 sec/side"],
-      ["Shoulder CARs, controlled rotations","1","5/direction"],
-      ["Cobra Stretch, lower back","2","30 sec"]
+      ["Standing quad stretch","1","30 sec/side"],
+      ["Seated hamstring stretch","1","30 sec/side"],
+      ["Calf stretch against wall","1","30 sec/side"],
+      ["Pigeon or seated glute stretch","1","30 sec/side"],
+      ["Hip flexor stretch, kneeling","1","30 sec/side"]
     ]
   },
   { name:"Sunday", focus:"Rest", type:"rest",
@@ -1081,7 +1122,7 @@ function accSection(title, sec, list, iso, data){
     return `
       <div class="ex-row">
         <div class="ex-main"><div class="ex-name">${e[0]}</div></div>
-        <div class="ex-scheme">${e[1]}&times;${e[2]}</div>
+        <div class="ex-scheme">${e[1]}&times;${e[2]}${e[3]?` &middot; ${e[3]}`:""}</div>
         <div class="sets">${boxes}</div>
       </div>`;
   }).join("");
