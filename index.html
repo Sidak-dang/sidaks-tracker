@@ -75,6 +75,43 @@
   width:100%; padding:8px; border-radius:8px; border:1px solid var(--border);
   background:var(--surface-2); color:var(--text); font-size:13px; cursor:pointer;
 }
+#accountPop button+button{ margin-top:8px; }
+
+/* ---- account modal (change email / change password) ---- */
+#accountModal{
+  position:fixed; inset:0; z-index:600; display:none; align-items:center; justify-content:center;
+  background:rgba(10,9,18,0.72); padding:24px;
+}
+#accountModal.open{ display:flex; }
+#accountModal .modalCard{
+  width:100%; max-width:380px; max-height:88vh; overflow-y:auto; background:var(--surface);
+  border:1px solid var(--border); border-radius:20px; padding:24px; box-shadow:var(--shadow);
+}
+#accountModal .modalHead{ display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; }
+#accountModal h2{ margin:0; font-family:'Fraunces',serif; font-size:20px; color:var(--text); }
+#accountModal .modalClose{
+  background:none; border:none; color:var(--text-dim); font-size:22px; line-height:1;
+  cursor:pointer; padding:4px 6px; margin:-4px -6px 0 0;
+}
+#accountModal .modalEmail{ font-size:13px; color:var(--text-dim); margin:2px 0 20px; word-break:break-all; }
+#accountModal section{ margin-bottom:22px; padding-bottom:22px; border-bottom:1px solid var(--border); }
+#accountModal section:last-of-type{ border-bottom:none; margin-bottom:0; padding-bottom:0; }
+#accountModal h3{ margin:0 0 4px; font-size:14px; color:var(--text); }
+#accountModal p.hint{ margin:0 0 12px; font-size:12px; color:var(--text-faint); }
+#accountModal label{ display:block; font-size:12px; color:var(--text-dim); margin:10px 0 6px; }
+#accountModal input{
+  width:100%; box-sizing:border-box; background:var(--surface-2); border:1px solid var(--border);
+  color:var(--text); border-radius:10px; padding:10px 12px; font-size:14px; font-family:inherit;
+}
+#accountModal input:focus{ outline:none; border-color:var(--accent); }
+#accountModal .formBtn{
+  width:100%; margin-top:14px; padding:11px; border:none; border-radius:10px;
+  background:var(--accent); color:#0a0912; font-weight:600; font-size:14px; cursor:pointer;
+}
+#accountModal .formBtn:disabled{ opacity:0.6; cursor:default; }
+#accountModal .formMsg{ font-size:12px; margin-top:10px; min-height:14px; }
+#accountModal .formMsg.err{ color:var(--bad); }
+#accountModal .formMsg.ok{ color:var(--good); }
 *{box-sizing:border-box;}
 html,body{margin:0;}
 body{
@@ -451,6 +488,43 @@ footer{ text-align:center; color:var(--text-faint); font-size:11px; margin-top:2
   </div>
 </div>
 
+<div id="accountModal">
+  <div class="modalCard">
+    <div class="modalHead">
+      <h2>Account</h2>
+      <button type="button" class="modalClose" id="accountModalClose" aria-label="Close">&times;</button>
+    </div>
+    <p class="modalEmail" id="modalEmail"></p>
+
+    <section>
+      <h3>Change email</h3>
+      <p class="hint">We'll send a confirmation link to the new address — the switch completes once you click it.</p>
+      <form id="changeEmailForm">
+        <label for="newEmail">New email</label>
+        <input id="newEmail" type="email" autocomplete="email" required>
+        <label for="emailCurrentPass">Current password</label>
+        <input id="emailCurrentPass" type="password" autocomplete="current-password" required>
+        <button type="submit" class="formBtn" id="changeEmailBtn">Update email</button>
+        <div class="formMsg" id="changeEmailMsg"></div>
+      </form>
+    </section>
+
+    <section>
+      <h3>Change password</h3>
+      <form id="changePassForm">
+        <label for="passCurrentPass">Current password</label>
+        <input id="passCurrentPass" type="password" autocomplete="current-password" required>
+        <label for="newPass">New password</label>
+        <input id="newPass" type="password" autocomplete="new-password" required minlength="6">
+        <label for="newPassConfirm">Confirm new password</label>
+        <input id="newPassConfirm" type="password" autocomplete="new-password" required minlength="6">
+        <button type="submit" class="formBtn" id="changePassBtn">Update password</button>
+        <div class="formMsg" id="changePassMsg"></div>
+      </form>
+    </section>
+  </div>
+</div>
+
 <div class="wrap" id="appRoot" style="visibility:hidden">
   <header class="hero">
     <div class="hero-text">
@@ -462,6 +536,7 @@ footer{ text-align:center; color:var(--text-faint); font-size:11px; margin-top:2
           <span class="sdot" id="syncPillDot"></span><span id="syncPillText">saved on this phone</span>
           <div id="accountPop">
             <div class="accEmail" id="accEmail"></div>
+            <button type="button" id="manageAccountBtn">Manage account</button>
             <button type="button" id="signOutBtn">Sign out</button>
           </div>
         </div>
@@ -897,7 +972,12 @@ function dayProgress(iso, day){
     const sets = parseInt(e[1],10);
     total += sets;
     const arr = data[sec+idx] || [];
-    done += arr.filter(Boolean).length;
+    // Clamp to the exercise's *current* set count. If a plan edit shrank an
+    // exercise's sets (or removed/reordered exercises), a stale array can
+    // still hold more `true` entries than there are boxes today — counting
+    // all of them would let done exceed total (e.g. showing "6/5"). Only the
+    // first `sets` entries correspond to boxes actually shown right now.
+    done += arr.slice(0, sets).filter(Boolean).length;
   });
   return {done,total};
 }
@@ -912,7 +992,9 @@ function peekProgress(iso, day){
     const sets = parseInt(e[1],10);
     total += sets;
     const arr = data[sec+idx] || [];
-    done += arr.filter(Boolean).length;
+    // See dayProgress: clamp to current sets so a stale, longer array from
+    // before a plan edit can't inflate this count past total.
+    done += arr.slice(0, sets).filter(Boolean).length;
   });
   return {done,total};
 }
@@ -923,7 +1005,9 @@ function sectionProgress(list, sec, data){
     const sets = parseInt(e[1],10);
     total += sets;
     const arr = data[sec+idx] || [];
-    done += arr.filter(Boolean).length;
+    // See dayProgress: clamp to current sets so a stale, longer array from
+    // before a plan edit can't inflate this count past total.
+    done += arr.slice(0, sets).filter(Boolean).length;
   });
   return {done,total};
 }
@@ -2176,6 +2260,33 @@ const pillText   = document.getElementById("syncPillText");
 const accountPop = document.getElementById("accountPop");
 const accEmailEl = document.getElementById("accEmail");
 const signOutBtn = document.getElementById("signOutBtn");
+const manageAccountBtn = document.getElementById("manageAccountBtn");
+const accountModal = document.getElementById("accountModal");
+const accountModalClose = document.getElementById("accountModalClose");
+const modalEmail = document.getElementById("modalEmail");
+const changeEmailForm = document.getElementById("changeEmailForm");
+const newEmailInput = document.getElementById("newEmail");
+const emailCurrentPassInput = document.getElementById("emailCurrentPass");
+const changeEmailBtn = document.getElementById("changeEmailBtn");
+const changeEmailMsg = document.getElementById("changeEmailMsg");
+const changePassForm = document.getElementById("changePassForm");
+const passCurrentPassInput = document.getElementById("passCurrentPass");
+const newPassInput = document.getElementById("newPass");
+const newPassConfirmInput = document.getElementById("newPassConfirm");
+const changePassBtn = document.getElementById("changePassBtn");
+const changePassMsg = document.getElementById("changePassMsg");
+
+function friendlyAuthError(err){
+  const code = (err && err.code) || "";
+  if (code.includes("wrong-password") || code.includes("invalid-credential")) return "That password doesn't match your account.";
+  if (code.includes("too-many-requests")) return "Too many attempts — wait a bit and try again.";
+  if (code.includes("requires-recent-login")) return "Please re-enter your current password and try again.";
+  if (code.includes("email-already-in-use")) return "That email is already in use.";
+  if (code.includes("invalid-email")) return "That doesn't look like a valid email address.";
+  if (code.includes("weak-password")) return "Password should be at least 6 characters.";
+  if (code.includes("network-request-failed")) return "Network error — check your connection and try again.";
+  return "Something went wrong — please try again.";
+}
 
 function setPill(state, label){
   pillDot.style.background = state === "error" ? "var(--bad)" : state === "syncing" ? "var(--rest)" : "var(--good)";
@@ -2208,7 +2319,8 @@ if (FIREBASE_CONFIG.apiKey === "REPLACE_ME") {
       ]);
       const {
         getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut,
-        setPersistence, browserLocalPersistence
+        setPersistence, browserLocalPersistence,
+        EmailAuthProvider, reauthenticateWithCredential, updatePassword, verifyBeforeUpdateEmail
       } = authMod;
       const { getFirestore, doc, getDoc, setDoc } = fsMod;
 
@@ -2311,6 +2423,84 @@ if (FIREBASE_CONFIG.apiKey === "REPLACE_ME") {
       signOutBtn.addEventListener("click", async () => {
         await signOut(auth);
         accountPop.style.display = "none";
+      });
+
+      function openAccountModal(){
+        modalEmail.textContent = auth.currentUser ? auth.currentUser.email : "";
+        changeEmailMsg.className = "formMsg";
+        changeEmailMsg.textContent = "";
+        changePassMsg.className = "formMsg";
+        changePassMsg.textContent = "";
+        changeEmailForm.reset();
+        changePassForm.reset();
+        accountModal.classList.add("open");
+        accountPop.style.display = "none";
+      }
+      function closeAccountModal(){
+        accountModal.classList.remove("open");
+      }
+
+      manageAccountBtn.addEventListener("click", openAccountModal);
+      accountModalClose.addEventListener("click", closeAccountModal);
+      accountModal.addEventListener("click", (e) => {
+        if (e.target === accountModal) closeAccountModal();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeAccountModal();
+      });
+
+      changeEmailForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const newEmailVal = newEmailInput.value.trim();
+        const pwVal = emailCurrentPassInput.value;
+        changeEmailMsg.className = "formMsg";
+        changeEmailMsg.textContent = "";
+        changeEmailBtn.disabled = true;
+        changeEmailBtn.textContent = "Updating…";
+        try {
+          const cred = EmailAuthProvider.credential(auth.currentUser.email, pwVal);
+          await reauthenticateWithCredential(auth.currentUser, cred);
+          await verifyBeforeUpdateEmail(auth.currentUser, newEmailVal);
+          changeEmailMsg.classList.add("ok");
+          changeEmailMsg.textContent = `Check ${newEmailVal} for a confirmation link — the change completes once you click it.`;
+          changeEmailForm.reset();
+        } catch (err) {
+          changeEmailMsg.classList.add("err");
+          changeEmailMsg.textContent = friendlyAuthError(err);
+        } finally {
+          changeEmailBtn.disabled = false;
+          changeEmailBtn.textContent = "Update email";
+        }
+      });
+
+      changePassForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const curPw = passCurrentPassInput.value;
+        const newPw = newPassInput.value;
+        const confirmPw = newPassConfirmInput.value;
+        changePassMsg.className = "formMsg";
+        changePassMsg.textContent = "";
+        if (newPw !== confirmPw) {
+          changePassMsg.classList.add("err");
+          changePassMsg.textContent = "New passwords don't match.";
+          return;
+        }
+        changePassBtn.disabled = true;
+        changePassBtn.textContent = "Updating…";
+        try {
+          const cred = EmailAuthProvider.credential(auth.currentUser.email, curPw);
+          await reauthenticateWithCredential(auth.currentUser, cred);
+          await updatePassword(auth.currentUser, newPw);
+          changePassMsg.classList.add("ok");
+          changePassMsg.textContent = "Password updated.";
+          changePassForm.reset();
+        } catch (err) {
+          changePassMsg.classList.add("err");
+          changePassMsg.textContent = friendlyAuthError(err);
+        } finally {
+          changePassBtn.disabled = false;
+          changePassBtn.textContent = "Update password";
+        }
       });
     } catch (err) {
       console.error("Cloud sync failed to load:", err);
