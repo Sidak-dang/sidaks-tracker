@@ -35,6 +35,45 @@
   --good:#4fd7a6;
   --rest:#caa06b;
   --shadow: 0 1px 2px rgba(0,0,0,0.5), 0 14px 34px -16px rgba(0,0,0,0.75);
+  --bad:#e0615f;
+}
+
+/* ---- cloud auth gate ---- */
+#authGate{
+  position:fixed; inset:0; z-index:500; display:flex; align-items:center; justify-content:center;
+  background:var(--bg); padding:24px;
+}
+#authGate .authCard{
+  width:100%; max-width:360px; background:var(--surface); border:1px solid var(--border);
+  border-radius:20px; padding:28px 24px; box-shadow:var(--shadow);
+}
+#authGate h2{ margin:0 0 6px; font-family:'Fraunces',serif; font-size:22px; color:var(--text); }
+#authGate p.sub{ margin:0 0 20px; color:var(--text-dim); font-size:14px; }
+#authGate label{ display:block; font-size:12px; color:var(--text-dim); margin:14px 0 6px; }
+#authGate input{
+  width:100%; box-sizing:border-box; background:var(--surface-2); border:1px solid var(--border);
+  color:var(--text); border-radius:10px; padding:11px 12px; font-size:15px; font-family:inherit;
+}
+#authGate input:focus{ outline:none; border-color:var(--accent); }
+#authGate button{
+  width:100%; margin-top:20px; padding:12px; border:none; border-radius:10px;
+  background:var(--accent); color:#0a0912; font-weight:600; font-size:15px; cursor:pointer;
+}
+#authGate button:disabled{ opacity:0.6; cursor:default; }
+#authGate .authError{ color:var(--bad); font-size:13px; margin-top:12px; min-height:16px; }
+
+/* ---- sync pill states + account popover ---- */
+.sync-pill{ cursor:pointer; position:relative; user-select:none; }
+.sync-pill .sdot{ transition:background .2s; }
+#accountPop{
+  display:none; position:absolute; top:calc(100% + 8px); left:0; z-index:50;
+  background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  padding:14px; min-width:200px; box-shadow:var(--shadow);
+}
+#accountPop .accEmail{ font-size:13px; color:var(--text-dim); word-break:break-all; margin-bottom:10px; }
+#accountPop button{
+  width:100%; padding:8px; border-radius:8px; border:1px solid var(--border);
+  background:var(--surface-2); color:var(--text); font-size:13px; cursor:pointer;
 }
 *{box-sizing:border-box;}
 html,body{margin:0;}
@@ -396,14 +435,36 @@ footer{ text-align:center; color:var(--text-faint); font-size:11px; margin-top:2
 </style>
 </head>
 <body>
-<div class="wrap">
+
+<div id="authGate">
+  <div class="authCard">
+    <h2>Sign in</h2>
+    <p class="sub">Your logged sets sync to this account across every device.</p>
+    <form id="authForm">
+      <label for="authEmail">Email</label>
+      <input id="authEmail" type="email" autocomplete="username" required>
+      <label for="authPass">Password</label>
+      <input id="authPass" type="password" autocomplete="current-password" required>
+      <button type="submit" id="authSubmit">Sign in</button>
+      <div class="authError" id="authError"></div>
+    </form>
+  </div>
+</div>
+
+<div class="wrap" id="appRoot" style="visibility:hidden">
   <header class="hero">
     <div class="hero-text">
       <p class="eyebrow" id="eyebrow"></p>
       <h1>Sidak's Tracker</h1>
       <p class="lede">A 6-day push/pull/legs hypertrophy split. Tap a box to log a set — streaks and totals update as you go.</p>
       <div class="hero-actions">
-        <div class="sync-pill"><span class="sdot"></span><span>saved on this phone</span></div>
+        <div class="sync-pill" id="syncPill">
+          <span class="sdot" id="syncPillDot"></span><span id="syncPillText">saved on this phone</span>
+          <div id="accountPop">
+            <div class="accEmail" id="accEmail"></div>
+            <button type="button" id="signOutBtn">Sign out</button>
+          </div>
+        </div>
         <button type="button" class="export-btn" id="exportBtn">&#8681; <span id="exportBtnLabel">Export week</span></button>
         <button type="button" class="export-all-link" id="exportAllBtn" title="Download a CSV of everything you've ever logged">export full history</button>
       </div>
@@ -734,7 +795,7 @@ function relockBioIfLeaving(destDate){
 const LKEY = "iron-ledger-standalone-v1";
 let STORE = {};
 try{ STORE = JSON.parse(localStorage.getItem(LKEY) || "{}"); }catch(e){ STORE = {}; }
-function saveLocal(){ try{ localStorage.setItem(LKEY, JSON.stringify(STORE)); }catch(e){} }
+function saveLocal(){ try{ localStorage.setItem(LKEY, JSON.stringify(STORE)); }catch(e){} notifyCloud(); }
 function dayData(iso){ if(!STORE[iso]) STORE[iso] = {}; return STORE[iso]; }
 
 // Water + weight live in their own store, separate from the workout STORE
@@ -745,7 +806,7 @@ function dayData(iso){ if(!STORE[iso]) STORE[iso] = {}; return STORE[iso]; }
 const BKEY = "sidaks-tracker-bio-v1";
 let BIO = {};
 try{ BIO = JSON.parse(localStorage.getItem(BKEY) || "{}"); }catch(e){ BIO = {}; }
-function saveBio(){ try{ localStorage.setItem(BKEY, JSON.stringify(BIO)); }catch(e){} }
+function saveBio(){ try{ localStorage.setItem(BKEY, JSON.stringify(BIO)); }catch(e){} notifyCloud(); }
 function bioData(iso){ if(!BIO[iso]) BIO[iso] = {}; return BIO[iso]; }
 
 // Weight used to be a single number per day (BIO[iso].weight). It's now a
@@ -815,7 +876,7 @@ function niceDateLabel(iso){
 const SKEY = "sidaks-tracker-settings-v1";
 let SETTINGS = {};
 try{ SETTINGS = JSON.parse(localStorage.getItem(SKEY) || "{}"); }catch(e){ SETTINGS = {}; }
-function saveSettings(){ try{ localStorage.setItem(SKEY, JSON.stringify(SETTINGS)); }catch(e){} }
+function saveSettings(){ try{ localStorage.setItem(SKEY, JSON.stringify(SETTINGS)); }catch(e){} notifyCloud(); }
 if(SETTINGS.waterGoalMl == null) SETTINGS.waterGoalMl = 4000;
 
 function sectionExercises(day){
@@ -2030,12 +2091,232 @@ document.getElementById("exportAllBtn").addEventListener("click", ()=>{
 document.getElementById("prevBtn").addEventListener("click",()=>{ const dest=addDays(selected,-1); relockIfLeaving(dest); relockBioIfLeaving(dest); navDir="prev"; selected=dest; renderAll(); });
 document.getElementById("nextBtn").addEventListener("click",()=>{ const dest=addDays(selected,1); relockIfLeaving(dest); relockBioIfLeaving(dest); navDir="next"; selected=dest; renderAll(); });
 
+/* ---- cloud sync bridge ----
+   This classic script never talks to Firebase directly — the module
+   script below does that. They can't share `let` variables (different
+   script scopes), so this small window-attached object is the only
+   handoff point in each direction:
+     - notifyCloud()/window.__cloudPush: local save -> "please sync this up"
+     - window.__trackerBridge: cloud module -> "here's the latest state,
+       apply it" / "what's the current state to push up"
+   __suppressCloud stops us from re-triggering a push the instant we've
+   just applied data that came FROM the cloud (which would otherwise loop). */
+let __suppressCloud = false;
+function notifyCloud(){ if(!__suppressCloud && window.__cloudPush) window.__cloudPush(); }
+window.__trackerBridge = {
+  getState(){ return { store: STORE, bio: BIO, settings: SETTINGS, updatedAt: SETTINGS._syncedAt || 0 }; },
+  applyCloudState(data){
+    __suppressCloud = true;
+    STORE = data.store || {};
+    BIO = data.bio || {};
+    SETTINGS = Object.assign({}, data.settings || {}, { _syncedAt: data.updatedAt || Date.now() });
+    saveLocal(); saveBio(); saveSettings();
+    __suppressCloud = false;
+    renderAll();
+  },
+  markSynced(ts){
+    __suppressCloud = true;
+    SETTINGS._syncedAt = ts;
+    saveSettings();
+    __suppressCloud = false;
+  }
+};
+
 renderAll();
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
     navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
   });
+}
+</script>
+
+<script type="module">
+/* ============================================================
+   CLOUD SYNC — Firebase Auth + Firestore
+   This is the ONLY block you need to touch to wire up your own
+   Firebase project. Everything else in this file is untouched.
+
+   Setup (one-time, in the Firebase console for THIS project):
+   1. Project settings -> General -> "Your apps" -> add a Web app
+      -> copy the firebaseConfig object into FIREBASE_CONFIG below.
+   2. Build -> Authentication -> Sign-in method -> enable
+      "Email/Password".
+   3. Build -> Authentication -> Users -> "Add user" -> create the
+      one account for this project (your email + a password).
+      There is no sign-up screen in this app on purpose — only the
+      account(s) you create by hand in the console can sign in.
+   4. Build -> Firestore Database -> Create database -> production
+      mode, any region close to you.
+   5. Firestore -> Rules -> paste the rules from firestore.rules.txt
+      (shipped alongside this file) -> Publish.
+   That's it — reload the page, sign in, and this device's local
+   data becomes the first thing pushed to the cloud.
+   ============================================================ */
+// TODO: replace with YOUR Firebase project's config (see step 1 above).
+const FIREBASE_CONFIG = {
+  apiKey: "REPLACE_ME",
+  authDomain: "REPLACE_ME.firebaseapp.com",
+  projectId: "REPLACE_ME",
+  storageBucket: "REPLACE_ME.appspot.com",
+  messagingSenderId: "REPLACE_ME",
+  appId: "REPLACE_ME"
+};
+
+const gate       = document.getElementById("authGate");
+const appRoot    = document.getElementById("appRoot");
+const gateForm   = document.getElementById("authForm");
+const gateEmail  = document.getElementById("authEmail");
+const gatePass   = document.getElementById("authPass");
+const gateError  = document.getElementById("authError");
+const gateBtn    = document.getElementById("authSubmit");
+const pill       = document.getElementById("syncPill");
+const pillDot    = document.getElementById("syncPillDot");
+const pillText   = document.getElementById("syncPillText");
+const accountPop = document.getElementById("accountPop");
+const accEmailEl = document.getElementById("accEmail");
+const signOutBtn = document.getElementById("signOutBtn");
+
+function setPill(state, label){
+  pillDot.style.background = state === "error" ? "var(--bad)" : state === "syncing" ? "var(--rest)" : "var(--good)";
+  pillText.textContent = label;
+}
+
+// Always the safe default: show the local app, no gate. Only the success
+// path below ever hides appRoot — so a blocked/offline CDN load, a typo'd
+// config, or Firebase being down all fail OPEN into local-only mode rather
+// than locking someone out of their own on-device data.
+function runLocalOnly(label){
+  gate.style.display = "none";
+  appRoot.style.visibility = "visible";
+  setPill("error", label);
+}
+
+if (FIREBASE_CONFIG.apiKey === "REPLACE_ME") {
+  runLocalOnly("cloud sync not set up yet");
+} else {
+  // Dynamic imports, not static ones: a static `import` at the top of this
+  // module would throw before any of our own code runs if the CDN request
+  // fails, which is exactly the "stuck behind the gate" failure mode this
+  // whole block exists to avoid.
+  (async () => {
+    try {
+      const [{ initializeApp }, authMod, fsMod] = await Promise.all([
+        import("https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js"),
+        import("https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js"),
+        import("https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js"),
+      ]);
+      const {
+        getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut,
+        setPersistence, browserLocalPersistence
+      } = authMod;
+      const { getFirestore, doc, getDoc, setDoc } = fsMod;
+
+      const app = initializeApp(FIREBASE_CONFIG);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+      setPersistence(auth, browserLocalPersistence).catch(()=>{});
+
+      let currentUid = null, pushTimer = null, pendingPush = false;
+      const stateDoc = (uid) => doc(db, "users", uid, "data", "state");
+
+      async function pushToCloud(){
+        if (!currentUid) return;
+        const local = window.__trackerBridge.getState();
+        const payload = { store: local.store, bio: local.bio, settings: local.settings, updatedAt: Date.now() };
+        try {
+          setPill("syncing", "syncing…");
+          await setDoc(stateDoc(currentUid), payload);
+          window.__trackerBridge.markSynced(payload.updatedAt);
+          pendingPush = false;
+          setPill("ok", `synced · ${auth.currentUser.email}`);
+        } catch (err) {
+          pendingPush = true;
+          setPill("error", "offline — saved on this phone");
+        }
+      }
+
+      async function pullFromCloud(uid){
+        setPill("syncing", "syncing…");
+        try {
+          const snap = await getDoc(stateDoc(uid));
+          if (snap.exists()) {
+            const cloud = snap.data();
+            const local = window.__trackerBridge.getState();
+            // Last-write-wins by timestamp: whichever device saved more
+            // recently becomes the source of truth for both.
+            if ((cloud.updatedAt || 0) >= (local.updatedAt || 0)) {
+              window.__trackerBridge.applyCloudState(cloud);
+            } else {
+              await pushToCloud();
+            }
+          } else {
+            // Nothing in the cloud yet — this device's local data is the seed.
+            await pushToCloud();
+          }
+          setPill("ok", `synced · ${auth.currentUser.email}`);
+        } catch (err) {
+          console.error(err);
+          setPill("error", "offline — saved on this phone");
+        }
+      }
+
+      // Called by the classic script (via notifyCloud) every time STORE/
+      // BIO/SETTINGS is saved locally. Debounced so a burst of taps only
+      // fires one network write, not one per tap.
+      window.__cloudPush = function(){
+        if (!currentUid) return;
+        clearTimeout(pushTimer);
+        pushTimer = setTimeout(pushToCloud, 1500);
+      };
+
+      window.addEventListener("online", () => { if (pendingPush) pushToCloud(); });
+
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          currentUid = user.uid;
+          gate.style.display = "none";
+          appRoot.style.visibility = "visible";
+          accEmailEl.textContent = user.email;
+          await pullFromCloud(user.uid);
+        } else {
+          currentUid = null;
+          gate.style.display = "flex";
+          appRoot.style.visibility = "hidden";
+        }
+      });
+
+      gateForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        gateError.textContent = "";
+        gateBtn.disabled = true;
+        gateBtn.textContent = "Signing in…";
+        try {
+          await signInWithEmailAndPassword(auth, gateEmail.value.trim(), gatePass.value);
+        } catch (err) {
+          gateError.textContent = "Couldn't sign in — check your email and password.";
+        } finally {
+          gateBtn.disabled = false;
+          gateBtn.textContent = "Sign in";
+        }
+      });
+
+      pill.addEventListener("click", () => {
+        accountPop.style.display = accountPop.style.display === "block" ? "none" : "block";
+      });
+      document.addEventListener("click", (e) => {
+        if (!pill.contains(e.target)) accountPop.style.display = "none";
+      });
+
+      signOutBtn.addEventListener("click", async () => {
+        await signOut(auth);
+        accountPop.style.display = "none";
+      });
+    } catch (err) {
+      console.error("Cloud sync failed to load:", err);
+      runLocalOnly("cloud sync unavailable — working offline");
+    }
+  })();
 }
 </script>
 </body>

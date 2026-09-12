@@ -32,3 +32,29 @@ this is rare and not part of the normal edit/commit/push loop.
 Do not revert the fetch handler back to cache-first (checking `caches.match`
 before `fetch`) — that reintroduces the stale-cache problem this file exists
 to prevent.
+
+## Cloud sync architecture — two scripts, one bridge
+`index.html` has two `<script>` blocks:
+1. The original classic script (all the app logic — unchanged in behavior).
+2. A `<script type="module">` block at the very end that does Firebase Auth
+   + Firestore sync.
+
+These can't share `let`/`const` variables directly (different script
+scopes), so they hand off through `window`:
+- Classic -> module: `notifyCloud()` calls `window.__cloudPush()` any time
+  `saveLocal`/`saveBio`/`saveSettings` runs, so a debounced push fires.
+- Module -> classic: `window.__trackerBridge` exposes `getState()`,
+  `applyCloudState(data)`, and `markSynced(ts)` so the module script can read
+  and overwrite `STORE`/`BIO`/`SETTINGS` without ever accessing them
+  directly.
+
+If you edit `STORE`/`BIO`/`SETTINGS` handling in the classic script, keep
+`__trackerBridge` in sync with whatever shape those objects take — it's the
+only thing standing between "cloud sync" and "silently syncing the wrong
+data." The `_syncedAt` field Firebase writes into `SETTINGS` is a plain
+timestamp used for last-write-wins conflict resolution across devices; don't
+strip it out elsewhere.
+
+If `FIREBASE_CONFIG` in the module script still has `"REPLACE_ME"` values,
+the whole cloud sync path no-ops safely — the auth gate hides itself and the
+app runs local-only, exactly as it did before cloud sync existed.
